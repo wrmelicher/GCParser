@@ -1,0 +1,414 @@
+PARSER_BEGIN( CircuitParser )
+  package GCParser;
+  import java.util.*;
+  import java.math.BigInteger;
+  import YaoGC.State;
+  import GCParser.Operation.*;
+  import java.io.*;
+
+  public class CircuitParser {
+
+    private Variable_Context context;	
+
+    private int lineNumber;
+    private boolean errors;
+    private int partyComp = Input_Variable.ALL;
+    private File file = null;
+    private boolean included = false;
+    private Set<File> ancestorIncludes = new TreeSet<File>();
+
+    private CircuitParser( File readFrom, InputStream io ) {
+      this( io );
+      file = readFrom;
+    }
+    private CircuitParser( InputStream io, File readFrom, CircuitParser p ) throws IOException {
+      this( readFrom, io );
+      partyComp = p.partyComp;
+      included = true;
+      ancestorIncludes.addAll( p.ancestorIncludes );
+      ancestorIncludes.add(readFrom.getCanonicalFile());
+    }
+    public static Variable_Context read( File readFrom ) throws CircuitDescriptionException, FileNotFoundException, IOException {
+      FileInputStream io = new FileInputStream(readFrom);
+      CircuitParser p = new CircuitParser( readFrom, io );
+      Variable_Context ans = p.read();
+      io.close();
+      return ans;
+    }
+
+    public Variable_Context read() throws CircuitDescriptionException {
+      context = new Variable_Context();
+      lineNumber = 1;
+      errors = false;
+      try {
+	GarbledCircuit();
+      } catch ( CircuitDescriptionException e ){
+	log(e);
+      } catch ( ParseException e ){
+	log(e);
+      } catch ( FileNotFoundException e ){
+	log(e);
+      } catch (TokenMgrError e ){
+	log(e);
+      } catch( IOException e ){
+	log(e);
+      }
+      if( errors ){
+	throw new CircuitDescriptionException("Error reading circuit description");
+      }
+      return context;
+    }
+    private Variable getVar( String name ){
+      return context.get(name);
+    }
+    private void putVar( Variable v ) {
+      try{
+	context.putVar(v);
+      } catch ( CircuitDescriptionException e ){
+	log( e );
+      }
+    }
+    private void log( Exception e ){
+      System.out.println( e.getMessage() + " on line "+lineNumber+" in file "+file.getName());
+      errors = true;
+    }
+    private void log( TokenMgrError e ){
+      System.out.println( e.getMessage() + " on line "+lineNumber+" in file "+file.getName());
+      errors = true;
+    }
+    private void log( CircuitDescriptionException e ){
+      System.out.println( e.getMessage() + " in file "+file.getName());
+      errors = true;
+    }
+
+    private boolean isCircularInclude( File other ) throws IOException {
+      return ancestorIncludes.contains(other.getCanonicalFile());
+    }
+    private void includeFile( String fname, Map<String,Variable> inMap, Map<String,String> outMap ) throws CircuitDescriptionException, FileNotFoundException, IOException {
+      File includeFile = new File( fname ); 
+      if( !includeFile.isAbsolute() ){
+	if( file == null )
+	  throw new CircuitDescriptionException("Cannot include relative path when parser is not initialized with File",lineNumber);
+        includeFile = new File( file.getParentFile(), fname );
+      } 
+      if( isCircularInclude(includeFile) ){
+        throw new CircuitDescriptionException("Circular include detected when including file "+fname, lineNumber);
+      }
+      FileInputStream io = new FileInputStream(includeFile);
+      CircuitParser p = new CircuitParser( io, includeFile, this );
+      Variable_Context includeCon = p.read();
+      io.close();
+
+      if( !inMap.keySet().containsAll( includeCon.getInputs() ) ){
+	String error = "The following input variables were not defined in the included file "+fname+": ";
+	includeCon.getInputs().removeAll( inMap.keySet() );
+	for( Iterator<String> it = includeCon.getInputs().iterator(); it.hasNext(); ){
+	  error += "\""+it.next()+"\"";
+	  if( it.hasNext() )
+	    error += ", ";
+	}
+	throw new CircuitDescriptionException(error, lineNumber);
+      }
+
+      if( ! includeCon.getOutputs().containsAll( outMap.keySet() ) ){
+	String error = "The following output variables were not found in the included file "+fname+
+	": ";
+	outMap.keySet().removeAll( includeCon.getOutputs() );
+	for( Iterator<String> it = outMap.keySet().iterator(); it.hasNext(); ){
+	  error += "\""+it.next()+"\"";
+	  if( it.hasNext() )
+	    error += ", ";
+	}
+	throw new CircuitDescriptionException(error, lineNumber);
+      }
+      context.addContextWithMapping( includeCon, inMap, outMap, lineNumber );
+    }
+  }
+PARSER_END( CircuitParser )
+
+SKIP: { " " | "\t" | "\r" }
+TOKEN: { < COMMENT : "//" (~["\0", "\n" ])* > }
+TOKEN: { < INPUT_MARK : ".input" > }
+TOKEN: { < OUTPUT_MARK : ".output" > }
+TOKEN: { < START_PARTY : ".startparty" > }
+TOKEN: { < END_PARTY : ".endparty" > }
+TOKEN: { < SIGNED_MARK : "signed" > }
+TOKEN: { < UNSIGNED_MARK : "unsigned" > }
+TOKEN: { < LINE_ENDING : "\n" > }
+TOKEN: { < INCLUDE : ".include" > }
+TOKEN: { < PATH : "<" (~["\0",">" ])* ">" > }
+TOKEN: { < OPEN_PAREN : "(" > }
+TOKEN: { < CLOSE_PAREN : ")" > }
+
+TOKEN: { < COLON : ":" > }
+TOKEN: { < COMMA : "," > }
+TOKEN: { < IDENTIFIER : <LETTER> ( <LETTER> | <DIGITS> | "_" | "-" | "." )* > }
+TOKEN: { < INTEGER : ("-")? <DIGITS> > }
+TOKEN: { < #DIGITS : (["0"-"9"])+ > }
+TOKEN: { < #LETTER : ["a"-"z","A"-"Z"] > }
+
+void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
+{
+  OperationNameResolver.initOperations();
+}
+{
+  ( (InputLine())? LineEnding() )*
+
+  OutputLine() LineEnding()
+  ( (OutputLine())? LineEnding() )*
+
+  Calculation()
+  ( LineEnding() (Calculation())? )*
+  <EOF>
+  {
+    try{
+      context.validate();
+    } catch (CircuitDescriptionException e){
+      log(e);
+    }
+  }
+}
+void LineEnding():
+{}
+{
+  ( <COMMENT> )?
+  <LINE_ENDING>
+  { lineNumber++; }
+}
+
+void InputLine() throws CircuitDescriptionException:
+{
+  String id;
+  int bitcount;
+  int party;
+}
+{
+  <INPUT_MARK> 
+  id = Identifier() 
+  party = IntDigits()
+  bitcount = IntDigits() 
+  
+  {
+    if( party != Input_Variable.CLIENT && party != Input_Variable.SERVER ){
+      throw new CircuitDescriptionException("Cannot recognize party "+party,lineNumber);
+    }
+    if( partyComp != Input_Variable.ALL ){
+      party = partyComp;
+    }
+    Variable inputv = new Input_Variable(id, party, lineNumber, bitcount);
+    putVar( inputv );
+  }
+}
+
+void OutputLine():
+{ 
+  String outid;
+  boolean isSigned = false;
+}
+{
+  <OUTPUT_MARK> 
+  outid = Identifier()
+  ( 
+    ( <SIGNED_MARK> 
+    { isSigned = true; }
+    ) | ( 
+    <UNSIGNED_MARK> 
+    { isSigned = false; }
+    ) 
+  )?
+  {
+    context.addOutput(outid, isSigned );
+  }
+}
+void Calculation() throws CircuitDescriptionException, FileNotFoundException, IOException:
+{}
+{
+  ( EvalTerm() ) |
+  ( Include() ) |
+  ( PartyChange() )
+}
+void PartyChange() throws CircuitDescriptionException:
+{
+  int party;
+}
+{
+  ( <START_PARTY>
+    party = IntDigits()
+    {
+      if( partyComp != Input_Variable.ALL && partyComp != party ){
+	throw new CircuitDescriptionException("Cannot begin a different local computation block inside of a local computation block",lineNumber);
+      }
+      if( party != Input_Variable.CLIENT && party != Input_Variable.SERVER ){
+	throw new CircuitDescriptionException("Cannot recognize party "+party, lineNumber );
+      }
+      partyComp = party;
+    }
+  ) |
+  ( <END_PARTY>
+    party = IntDigits()
+    {
+      if( included && partyComp != Input_Variable.ALL )
+	throw new CircuitDescriptionException("Cannot end local computation block in an included file which is inside a local computation block",lineNumber);
+      if( party != partyComp )
+	throw new CircuitDescriptionException("Cannot end local computation block when you are not in a local computation block");
+      partyComp = Input_Variable.ALL;
+    }
+  ) 
+}
+
+void Include() throws CircuitDescriptionException, FileNotFoundException, IOException:
+{
+  Token tpath;
+  Map<String,String> outMap;
+  Map<String,Variable> inMap;
+}
+{
+  <INCLUDE>
+  tpath = <PATH>
+  <OUTPUT_MARK>
+  outMap = Mapping()
+  <INPUT_MARK>
+  inMap = InMapping()
+
+  {
+    String path = tpath.image;
+    path = path.substring( 1, path.length()-1 );
+    includeFile( path, inMap, outMap );
+  }
+}
+
+void EvalTerm() throws CircuitDescriptionException:
+{
+  String outid;
+  String name;
+  Variable temp;
+  ArrayList<Variable> inputs = new ArrayList<Variable>();
+}
+{
+  outid = Identifier() // output variable
+  name = Identifier() // operation name
+
+  ( temp = VariableInput() 
+    { 
+      inputs.add( temp ); 
+    }
+  )*
+  // variables
+  {
+    OpDirections op = OperationNameResolver.get( name );
+    if( op == null ){
+      throw new CircuitDescriptionException("Operation \""+name+"\" not recognized", lineNumber );
+    }
+    Computed_Variable newv = new Computed_Variable
+      ( outid, partyComp,lineNumber, inputs.toArray(new Variable[1]), op );
+    putVar( newv );
+  }
+}
+Variable VariableInput() throws CircuitDescriptionException:
+{
+  String id;
+  BigInteger num;
+  Variable var; 
+  int bits;
+}
+{
+  (
+    // named variable
+    id = Identifier() 
+    { 
+      var = getVar(id);
+      if( var == null ){
+	throw new CircuitDescriptionException("Variable \""+id+"\" not defined", lineNumber );
+      }
+      return var;
+    }
+  ) | (
+    // constant
+    num = Digits()
+    { var = new Constant_Variable( num.toString(), lineNumber, num ); }
+    ( 
+    <COLON>
+    bits = IntDigits()
+    {
+      var = new Constant_Variable( num.toString(), lineNumber, num, bits ); 
+    }
+    )?
+    {
+      return var;
+    }
+  )
+}
+String Identifier():
+{ Token t; }
+{
+  t = <IDENTIFIER>
+  { return t.image; }
+}
+BigInteger Digits():
+{ Token t; }
+{ 
+  t = <INTEGER>
+  { 
+    try{ 
+      return new BigInteger( t.image ); 
+    } catch (NumberFormatException e){
+      // will never happen
+      return BigInteger.ZERO;
+    }
+  }
+}
+int IntDigits():
+{ Token t; }
+{
+  t = <INTEGER>
+  { 
+    try{
+      return Integer.parseInt( t.image );
+    } catch( NumberFormatException e ){
+      // will never happen
+      return 0;
+    }
+  }
+}
+Map<String,String> Mapping():
+{
+  String to;
+  String from;
+  Map<String,String> ans = new HashMap<String,String>();
+}
+{
+  <OPEN_PAREN>
+  (
+    to = Identifier()
+    <COLON>
+    from = Identifier()
+    ( <COMMA> ) ? 
+    {
+      ans.put( to, from );
+    }
+    
+  )*
+  <CLOSE_PAREN>
+  { return ans; }
+}
+Map<String,Variable> InMapping() throws CircuitDescriptionException:
+{
+  String to;
+  Variable from;
+  Map<String,Variable> ans = new HashMap<String,Variable>();
+}
+{
+  <OPEN_PAREN>
+  (
+    to = Identifier()
+    <COLON>
+    from = VariableInput()
+    ( <COMMA> ) ? 
+    {
+      ans.put( to, from );
+    }
+    
+  )*
+  <CLOSE_PAREN>
+  { return ans; }
+}

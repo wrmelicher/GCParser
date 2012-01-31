@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<project name="PPEditDistance" default="compile">
+
+  <target name="init" >
+    <mkdir dir="build/classes" />
+    <mkdir dir="dist" />
+    <mkdir dir="src/GCParser/generated_files" />
+  </target>
+  
+  <target name="javacc" >
+    <javacc
+      target="src/GCParser/CircuitParser.jj"
+      outputdirectory="src/GCParser/generated_files"
+      javacchome="/usr/share/java/"
+      static="false"
+    />
+  </target>
+
+  <target name="compile" depends="init, javacc" >
+    <javac srcdir="src" destdir="build/classes" debug="on" debuglevel="lines,vars,source" source="1.6">
+      <classpath>
+        <pathelement location="extlibs/jargs.jar"/>
+        <pathelement location="extlibs/commons-io-1.4.jar"/>
+        <pathelement path="build/classes"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init" >
+    <delete dir="build" />
+    <delete dir="dist" />
+    <delete dir="src/GCParser/generated_files" />
+  </target>
+
+  <target name="archive" depends="compile" >
+    <jar destfile="dist/GCParser.jar">
+      <fileset dir="build/classes"/>
+    </jar>
+  </target>
+
+  <target name="runsetint" depends="archive">
+    <exec executable="./runsetint"/>
+  </target>
+</project>
