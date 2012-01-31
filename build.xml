@@ -38,7 +38,4 @@
     </jar>
   </target>
 
-  <target name="runsetint" depends="archive">
-    <exec executable="./runsetint"/>
-  </target>
 </project>
