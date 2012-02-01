@@ -140,6 +140,19 @@ public class Variable_Context {
   public Collection<Input_Variable> getInVarsOfParty( int party ){
     return partyMap.get( party );
   }
+  public Collection<Input_Variable> getPrivInOfParty( int party ){
+    // get private inputs to supply
+    Set<Input_Variable> ans = new TreeSet<Input_Variable>();
+    for( Input_Variable i : getInVarsOfParty(party) ){
+      if( !(i instanceof Collapsed_In_Var ) ){
+	ans.add(i);
+      }
+    }
+    for( String v : collapsedVars.keySet() ){
+      ans.add( collapsedVars.get(v) );
+    }
+    return ans;
+  }
   public int getBitsOfParty( int party ){
     Collection<Input_Variable> list = getInVarsOfParty( party );
     int accum = 0;

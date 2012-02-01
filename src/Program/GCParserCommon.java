@@ -41,13 +41,12 @@ public class GCParserCommon extends ProgCommon{
   }
   public void setPIP( PrivateInputProvider PIP ){
     pip = PIP;
-    reset();
   }
   public Boolean isSignedHint( String name ){
     return context.isSigned(name);
   }
   public Map<String,BigInteger> getPrivateInputs(int party) throws Exception {
-    Iterator<Input_Variable> it = context().getInVarsOfParty(party).iterator();
+    Iterator<Input_Variable> it = context().getPrivInOfParty(party).iterator();
     Map<String, Input_Variable> requested = new HashMap<String, Input_Variable>();
     while( it.hasNext() ) {
       Input_Variable var = it.next();
