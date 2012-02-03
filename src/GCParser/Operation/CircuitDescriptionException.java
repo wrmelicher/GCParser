@@ -15,6 +15,6 @@ public class CircuitDescriptionException extends Exception {
   public String getMessage(){
     if( line == 0 )
       return super.getMessage();
-    return super.getMessage() + " on line "+line;
+    return "line "+line+": "+super.getMessage();
   }
 }

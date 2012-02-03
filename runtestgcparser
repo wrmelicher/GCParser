@@ -1,7 +1,9 @@
 #!/bin/bash
 
-java -ea -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test.TestGCParserServer -f ./CircuitFiles/sample_input_private_comp.cir -p ./CircuitFiles/sample_server_private.priv -w 80 > results/siserverout &
+INFILE="./CircuitFiles/sample_input_private_comp.cir"
+
+java -ea -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test.TestGCParserServer -f "$INFILE" -p ./CircuitFiles/sample_server_private.priv -w 80 > results/siserverout &
 
 sleep 0.8
 
-java -ea -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f ./CircuitFiles/sample_input_private_comp.cir -p ./CircuitFiles/sample_client_private.priv --server localhost -r 1 > results/siclientout &
+java -ea -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f "$INFILE" -p ./CircuitFiles/sample_client_private.priv --server localhost -r 1 > results/siclientout &

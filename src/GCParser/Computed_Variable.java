@@ -46,6 +46,9 @@ public class Computed_Variable extends Variable {
     if( numBits == -1 ){
       if( getParty() != Input_Variable.ALL )
 	for( Variable v : children ){
+	  if( v == null ){
+	    throw createException("Variable \""+getId()+"\"'s operand not initialized");
+	  }
 	  if( v.getParty() != getParty() && v.getParty() != Input_Variable.NEUTRAL ) {
 	    throw createException("Variable \""+getId()+"\" cannot be evaluated local to party "+getParty()+" when it depends on variable \""+v.getId()+"\" of party "+v.getParty());
 	  }
@@ -74,7 +77,8 @@ public class Computed_Variable extends Variable {
     super.debugPrint(tabs);
     int newtabs = tabs+1;
     for( Variable v : children ){
-      v.debugPrint( newtabs );
+      if( v != null )
+	v.debugPrint( newtabs );
     }
   }
   public String toString(){
