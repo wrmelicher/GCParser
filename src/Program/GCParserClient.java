@@ -86,7 +86,9 @@ public class GCParserClient extends ProgClient {
     GCParserCommon.oos.writeInt( Wire.K );
     GCParserCommon.oos.flush();
     Wire.K = Math.max( Wire.K, serverk );
+    StopWatch.taskTimeStamp("transfer inputs");
     outputState = gccom.context().execCircuit( inputState );
+    StopWatch.taskTimeStamp("execution of circuit");
   }
   public Map<String,BigInteger> getOutputValues() throws Exception {
     if( outValues != null )
