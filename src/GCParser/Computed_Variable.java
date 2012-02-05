@@ -3,6 +3,7 @@ import YaoGC.*;
 import GCParser.Operation.*;
 import java.util.*;
 import java.math.BigInteger;
+
 public class Computed_Variable extends Variable {
   private Variable[] children;
   private OpDirections op;
