@@ -16,7 +16,7 @@ public class Variable_Context {
     isReset = true;
     inputs = new HashSet<String>();
     variables = new HashMap<String, Variable>();
-    partyMap = new TreeMap<Integer, Set<Input_Variable> >();
+    partyMap = new HashMap<Integer, Set<Input_Variable> >();
     outVar = new HashMap<String,Boolean>();
     collapsedVars = new HashMap<String, Input_Variable>();
   }
@@ -31,7 +31,7 @@ public class Variable_Context {
       inputs.add( inv.getId() );
       Set<Input_Variable> inlist = partyMap.get( inv.getParty() );
       if( inlist == null ){
-	inlist = new TreeSet<Input_Variable>();
+	inlist = new HashSet<Input_Variable>();
 	partyMap.put(inv.getParty(),inlist);
       }
       inlist.add( inv );
@@ -142,7 +142,7 @@ public class Variable_Context {
   }
   public Collection<Input_Variable> getPrivInOfParty( int party ){
     // get private inputs to supply
-    Set<Input_Variable> ans = new TreeSet<Input_Variable>();
+    Set<Input_Variable> ans = new HashSet<Input_Variable>();
     for( Input_Variable i : getInVarsOfParty(party) ){
       if( !(i instanceof Collapsed_In_Var ) ){
 	ans.add(i);

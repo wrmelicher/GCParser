@@ -13,6 +13,7 @@
       outputdirectory="src/GCParser/generated_files"
       javacchome="/usr/share/java/"
       static="false"
+      ignorecase="true"
     />
   </target>
 

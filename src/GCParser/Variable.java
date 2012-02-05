@@ -16,7 +16,7 @@ public abstract class Variable implements Comparable<Variable> {
     party = partyarg;
     id = idarg;
     debugLineNum = lineNumArg;
-    parents = new TreeMap<Computed_Variable, Integer>();
+    parents = new HashMap<Computed_Variable, Integer>();
   }
   public Variable( String idarg, int partyarg ){
     this( idarg, partyarg, -1 );
@@ -35,6 +35,9 @@ public abstract class Variable implements Comparable<Variable> {
   }
   public int compareTo( Variable v ){
     return id.compareTo(v.id);
+  }
+  public int hashCode(){
+    return id.hashCode();
   }
 
   public abstract State execute() throws Exception; // the outputs of this variable

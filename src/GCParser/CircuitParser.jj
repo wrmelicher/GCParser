@@ -127,38 +127,37 @@ PARSER_BEGIN( CircuitParser )
 PARSER_END( CircuitParser )
 
 SKIP: { " " | "\t" | "\r" }
-TOKEN: { < COMMENT : "//" (~["\0", "\n" ])* > }
-TOKEN: { < INPUT_MARK : ".input" > }
-TOKEN: { < OUTPUT_MARK : ".output" > }
-TOKEN: { < START_PARTY : ".startparty" > }
-TOKEN: { < END_PARTY : ".endparty" > }
-TOKEN: { < SIGNED_MARK : "signed" > }
-TOKEN: { < UNSIGNED_MARK : "unsigned" > }
-TOKEN: { < LINE_ENDING : "\n" > }
-TOKEN: { < INCLUDE : ".include" > }
-TOKEN: { < PATH : "<" (~["\0",">" ])* ">" > }
-TOKEN: { < OPEN_PAREN : "(" > }
-TOKEN: { < CLOSE_PAREN : ")" > }
-
-TOKEN: { < COLON : ":" > }
-TOKEN: { < COMMA : "," > }
-TOKEN: { < IDENTIFIER : <LETTER> ( <LETTER> | <DIGITS> | "_" | "-" | "." )* > }
-TOKEN: { < INTEGER : ("-")? <DIGITS> > }
-TOKEN: { < #DIGITS : (["0"-"9"])+ > }
-TOKEN: { < #LETTER : ["a"-"z","A"-"Z"] > }
+TOKEN: {
+  < COLON : ":" >
+| < COMMA : "," >
+| < LINE_ENDING : "\n" >
+| < OPEN_PAREN : "(" >
+| < CLOSE_PAREN : ")" > 
+| < INPUT_MARK : ".input" >
+| < OUTPUT_MARK : ".output" >
+| < SIGNED_MARK : "signed" >
+| < INCLUDE : ".include" >
+| < UNSIGNED_MARK : "unsigned" > 
+| < START_PARTY : ".startparty" > 
+| < END_PARTY : ".endparty" >
+| < PATH : "<" (~[ ">", "\n" ])* ">" >
+| < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] )* >
+| < INTEGER : ("-")? (["0"-"9"])+ >
+| < COMMENT : "//" (~[ "\n" ])* >
+}
 
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {
   OperationNameResolver.initOperations();
 }
 {
-  ( (InputLine())? LineEnding() )*
+  ( (InputLine())? LineEnding() )+
 
   OutputLine() LineEnding()
-  ( (OutputLine())? LineEnding() )*
+  ( ( OutputLine() )? LineEnding() )*
 
   Calculation()
-  ( LineEnding() (Calculation())? )*
+  ( LineEnding() ( Calculation() )? )*
   <EOF>
   {
     try{
@@ -172,7 +171,7 @@ void LineEnding():
 {}
 {
   ( <COMMENT> )?
-  <LINE_ENDING>
+  ( <LINE_ENDING> )
   { lineNumber++; }
 }
 
@@ -186,8 +185,7 @@ void InputLine() throws CircuitDescriptionException:
   <INPUT_MARK> 
   id = Identifier() 
   party = IntDigits()
-  bitcount = IntDigits() 
-  
+  bitcount = IntDigits()
   {
     if( party != Input_Variable.CLIENT && party != Input_Variable.SERVER ){
       throw new CircuitDescriptionException("Cannot recognize party "+party,lineNumber);
@@ -223,9 +221,9 @@ void OutputLine():
 void Calculation() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
-  ( EvalTerm() ) |
-  ( Include() ) |
-  ( PartyChange() )
+  ( EvalTerm() |
+  Include() |
+  PartyChange() )
 }
 void PartyChange() throws CircuitDescriptionException:
 {
@@ -253,7 +251,7 @@ void PartyChange() throws CircuitDescriptionException:
 	throw new CircuitDescriptionException("Cannot end local computation block when you are not in a local computation block");
       partyComp = Input_Variable.ALL;
     }
-  ) 
+  )
 }
 
 void Include() throws CircuitDescriptionException, FileNotFoundException, IOException:
@@ -327,11 +325,11 @@ Variable VariableInput() throws CircuitDescriptionException:
     num = Digits()
     { var = new Constant_Variable( num.toString(), lineNumber, num ); }
     ( 
-    <COLON>
-    bits = IntDigits()
-    {
-      var = new Constant_Variable( num.toString(), lineNumber, num, bits ); 
-    }
+      <COLON>
+      bits = IntDigits()
+      {
+	var = new Constant_Variable( num.toString(), lineNumber, num, bits ); 
+      }
     )?
     {
       return var;

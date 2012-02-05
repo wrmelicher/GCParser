@@ -53,9 +53,9 @@ public class Computed_Variable extends Variable {
 	    throw createException("Variable \""+getId()+"\" cannot be evaluated local to party "+getParty()+" when it depends on variable \""+v.getId()+"\" of party "+v.getParty());
 	  }
 	}
-      return op.validate( children, this );
-    } else 
-      return numBits;
+      numBits = op.validate(children,this);
+    } 
+    return numBits;
   }
   public void localEval( int party, Variable_Context con ) throws Exception {
     super.localEval( party, con );
