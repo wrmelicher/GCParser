@@ -1,16 +1,21 @@
 package GCParser.Operation;
 
-import YaoGC.State;
-import YaoGC.SUB_2N_N;
+import YaoGC.*;
 import GCParser.*;
 
-public class SubOperation extends OpDirections {
+public class SubOperation extends OpCircuitUser {
   public final static String NAME = "sub";
   public SubOperation(){
     super(NAME);
   }
-  public State execute( State[] inputs ) throws Exception {
-    return binaryOperation( new SUB_2N_N( inputs[0].getWidth() ),inputs );
+  public Circuit create_circuit( State[] operands ){
+    return new SUB_2N_N( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute( State[] inputs, Circuit c ) throws Exception {
+    return binaryOperation( c, inputs );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

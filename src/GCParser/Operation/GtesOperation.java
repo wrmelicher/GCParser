@@ -3,14 +3,20 @@ package GCParser.Operation;
 import GCParser.*;
 import YaoGC.*;
 
-public class GtesOperation extends OpDirections {
+public class GtesOperation extends OpCircuitUser {
   public final static String NAME = "gtes";
   // greater than or equal to signed
   public GtesOperation(){
     super(NAME);
   }
-  public State execute( State[] inputs ) throws Exception {
-    return binaryOperation( new GTES_2L_1( inputs[0].getWidth() ), inputs );
+  public Circuit create_circuit( State[] operands ){
+    return new GTES_2L_1( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute( State[] inputs, Circuit c ) throws Exception {
+    return binaryOperation( c, inputs );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

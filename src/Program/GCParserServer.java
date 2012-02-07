@@ -3,6 +3,7 @@ package Program;
 import YaoGC.*;
 import Utils.*;
 import GCParser.Input_Variable;
+import GCParser.Operation.OpCircuitUser;
 
 import java.math.*;
 import java.util.*;
@@ -86,6 +87,7 @@ public class GCParserServer extends ProgServer {
     GCParserCommon.oos.flush();
     int clientk = GCParserCommon.ois.readInt();
     Wire.K = Math.max( Wire.K, clientk );
+    OpCircuitUser.clear_circuit_cache();
     StopWatch.taskTimeStamp("transfer inputs");
     outputState = gccom.context().execCircuit( inputState );
     StopWatch.taskTimeStamp("execution of circuit");

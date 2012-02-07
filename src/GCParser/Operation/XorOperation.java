@@ -1,18 +1,30 @@
 package GCParser.Operation;
 import YaoGC.*;
 import GCParser.*;
-public class XorOperation extends OpDirections {
+public class XorOperation extends OpCircuitUser {
   public final static String NAME = "xor";
   public XorOperation(){
     super(NAME);
   }
-  public State execute(State[] inputs) throws Exception {
+  public Circuit create_circuit( State[] operands ){
+    if( operands.length == 1 ){
+      return new XOR_L_1( operands[0].getWidth() );
+    } else {
+      return new XOR_2L_L( operands[0].getWidth() );
+    }
+  }
+  public int circuit_id( State[] operands ){
+    int id = operands[0].getWidth();
+    if( operands.length == 1 )
+      return -id;
+    else 
+      return id;
+  }
+  public State execute(State[] inputs, Circuit xor) throws Exception {
     if( inputs.length == 1 ){
-      XOR_L_1 xor = new XOR_L_1( inputs[0].getWidth() );
-      xor.build();
       return xor.startExecuting( inputs[0] );
     } else {
-      return binaryOperation( new XOR_2L_L( inputs[0].getWidth() ),inputs );
+      return binaryOperation( xor, inputs );
     }
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {

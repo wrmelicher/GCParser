@@ -1,6 +1,7 @@
 package Program;
 
 import GCParser.*;
+import GCParser.Operation.OpCircuitUser;
 import YaoGC.*;
 import Utils.*;
 
@@ -86,6 +87,7 @@ public class GCParserClient extends ProgClient {
     GCParserCommon.oos.writeInt( Wire.K );
     GCParserCommon.oos.flush();
     Wire.K = Math.max( Wire.K, serverk );
+    OpCircuitUser.clear_circuit_cache();
     StopWatch.taskTimeStamp("transfer inputs");
     outputState = gccom.context().execCircuit( inputState );
     StopWatch.taskTimeStamp("execution of circuit");

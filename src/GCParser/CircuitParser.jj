@@ -10,6 +10,9 @@ PARSER_BEGIN( CircuitParser )
 
     private Variable_Context context;	
 
+    private int major_version;
+    private int minor_version;
+    
     private int lineNumber;
     private boolean errors;
     private int partyComp = Input_Variable.ALL;
@@ -128,22 +131,24 @@ PARSER_END( CircuitParser )
 
 SKIP: { " " | "\t" | "\r" }
 TOKEN: {
-  < COLON : ":" >
-| < COMMA : "," >
-| < LINE_ENDING : "\n" >
-| < OPEN_PAREN : "(" >
-| < CLOSE_PAREN : ")" > 
-| < INPUT_MARK : ".input" >
-| < OUTPUT_MARK : ".output" >
-| < SIGNED_MARK : "signed" >
-| < INCLUDE : ".include" >
-| < UNSIGNED_MARK : "unsigned" > 
-| < START_PARTY : ".startparty" > 
-| < END_PARTY : ".endparty" >
-| < PATH : "<" (~[ ">", "\n" ])* ">" >
-| < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] )* >
-| < INTEGER : ("-")? (["0"-"9"])+ >
-| < COMMENT : "//" (~[ "\n" ])* >
+    < COLON : ":" >
+  | < PERIOD : "." >
+  | < COMMA : "," >
+  | < LINE_ENDING : "\n" >
+  | < OPEN_PAREN : "(" >
+  | < CLOSE_PAREN : ")" > 
+  | < INPUT_MARK : ".input" >
+  | < OUTPUT_MARK : ".output" >
+  | < SIGNED_MARK : "signed" >
+  | < INCLUDE : ".include" >
+  | < VERSION : ".version" >
+  | < UNSIGNED_MARK : "unsigned" > 
+  | < START_PARTY : ".startparty" > 
+  | < END_PARTY : ".endparty" >
+  | < PATH : "<" (~[ ">", "\n" ])* ">" >
+  | < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] )* >
+  | < INTEGER : ("-")? (["0"-"9"])+ >
+  | < COMMENT : "//" (~[ "\n" ])* >
 }
 
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
@@ -151,6 +156,7 @@ void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException,
   OperationNameResolver.initOperations();
 }
 {
+  ( Version_Line() )
   ( (InputLine())? LineEnding() )+
 
   OutputLine() LineEnding()
@@ -165,6 +171,22 @@ void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException,
     } catch (CircuitDescriptionException e){
       log(e);
     }
+  }
+}
+void Version_Line():
+{
+  int major = 1;
+  int minor = 0;
+}
+{
+  ( <VERSION> 
+    major = IntDigits()
+    <PERIOD>
+    minor = IntDigits()
+  )?
+  {
+    major_version = major;
+    minor_version = minor;
   }
 }
 void LineEnding():

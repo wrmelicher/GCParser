@@ -11,16 +11,8 @@ public class LtuOperation extends OpDirections {
   }
   // ltu a b returns 1 if a is less than b
   public State execute( State[] inputs ) throws Exception {
-    GT_2L_1 gtu = new GT_2L_1( inputs[0].getWidth() );
-    gtu.build();
-    State total = State.fromConcatenation( inputs[0], inputs[1] );
-    int[] mapping = new int[ inputs[0].getWidth()*2 ];
-    for( int i = 0; i < inputs[0].getWidth(); i++ ){
-      mapping[ GT_2L_1.X(i) ] = i + inputs[0].getWidth();
-      mapping[ GT_2L_1.Y(i) ] = i;
-    }
-    State in = OpDirections.fromMapping( total, mapping );
-    return gtu.startExecuting( in );
+    State[] switched = { inputs[1], inputs[0] };
+    return executeOther( GtuOperation.NAME, switched );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

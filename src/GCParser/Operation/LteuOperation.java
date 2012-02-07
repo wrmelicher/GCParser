@@ -14,7 +14,7 @@ public class LteuOperation extends OpDirections {
     State[] switched = new State[2];
     switched[0] = inputs[1];
     switched[1] = inputs[0];
-    return binaryOperation( new GTE_2L_1( inputs[0].getWidth() ), switched );
+    return executeOther( GteuOperation.NAME, switched );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

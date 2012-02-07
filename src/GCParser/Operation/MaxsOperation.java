@@ -1,14 +1,20 @@
 package GCParser.Operation;
 import YaoGC.*;
 import GCParser.*;
-public class MaxsOperation extends OpDirections {
+public class MaxsOperation extends OpCircuitUser {
   public final static String NAME = "maxs";
   // max signed operation
   public MaxsOperation(){
     super(NAME);
   }
-  public State execute(State[] inputs) throws Exception {
-    return binaryOperation( new MAXS_2L_L( inputs[0].getWidth() ),inputs );
+  public Circuit create_circuit( State[] operands ){
+    return new MAXS_2L_L( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute(State[] inputs, Circuit c) throws Exception {
+    return binaryOperation( c, inputs );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

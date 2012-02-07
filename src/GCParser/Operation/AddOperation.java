@@ -3,13 +3,19 @@ package GCParser.Operation;
 import GCParser.*;
 import YaoGC.*;
 
-public class AddOperation extends OpDirections {
+public class AddOperation extends OpCircuitUser {
   public static final String NAME = "add";
   public AddOperation(){
     super( NAME );
   }
-  public State execute( State[] inputs ) throws Exception {
-    return binaryOperation( new ADD_2N_N( inputs[0].getWidth() ),inputs );
+  public Circuit create_circuit( State[] operands ){
+    return new ADD_2N_N( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute( State[] inputs, Circuit cir ) throws Exception {
+    return binaryOperation( cir, inputs );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

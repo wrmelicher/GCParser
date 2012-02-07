@@ -3,14 +3,18 @@ package GCParser.Operation;
 import YaoGC.*;
 import GCParser.*;
 
-public class NotOperation extends OpDirections {
+public class NotOperation extends OpCircuitUser {
   public final static String NAME = "not";
   public NotOperation(){
     super(NAME);
   }
-  public State execute( State[] inputs ) throws Exception{
-    NOT_N_N not = new NOT_N_N( inputs[0].getWidth() );
-    not.build();
+  public Circuit create_circuit( State[] operands ){
+    return new NOT_N_N( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute( State[] inputs, Circuit not ) throws Exception{
     return not.startExecuting( inputs[0] );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {

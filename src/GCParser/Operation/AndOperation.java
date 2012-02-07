@@ -1,13 +1,19 @@
 package GCParser.Operation;
 import YaoGC.*;
 import GCParser.*;
-public class AndOperation extends OpDirections {
+public class AndOperation extends OpCircuitUser {
   public final static String NAME = "and";
   public AndOperation(){
     super(NAME);
   }
-  public State execute(State[] inputs) throws Exception {
-    return binaryOperation( new AND_2L_L( inputs[0].getWidth() ),inputs );
+  public Circuit create_circuit( State[] operands ){
+    return new AND_2L_L( operands[0].getWidth() );
+  }
+  public int circuit_id( State[] operands ){
+    return operands[0].getWidth();
+  }
+  public State execute(State[] inputs, Circuit and ) throws Exception {
+    return binaryOperation( and, inputs );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

@@ -10,8 +10,8 @@ public class NequOperation extends OpDirections {
   }
   public State execute( State[] inputs ) throws Exception {
     State[] xor = new State[1];
-    xor[0] = OperationNameResolver.executeFromName(XorOperation.NAME, inputs );
-    return OperationNameResolver.executeFromName(OrOperation.NAME, xor);
+    xor[0] = executeOther(XorOperation.NAME, inputs );
+    return executeOther(OrOperation.NAME, xor);
   }	
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     binaryOperation( operands );

@@ -7,7 +7,7 @@ import GCParser.*;
 public abstract class OpDirections {
 
   private String op_name;
-  private Variable currentVar;
+  protected Variable currentVar;
   public OpDirections(String name){
     op_name = name;
     OperationNameResolver.registerOp(op_name,this);
@@ -26,6 +26,11 @@ public abstract class OpDirections {
   public CircuitDescriptionException createException(String mess){
     return new CircuitDescriptionException( mess, currentVar.getLineNum() );
   }
+  public State executeOther( String other, State[] operands ) throws Exception {
+    OpDirections op_other = OperationNameResolver.get( other );
+    op_other.currentVar = currentVar;
+    return op_other.execute( operands );
+  }
 
   // convenience methods
   protected void binaryOperation( Variable[] operands ) throws CircuitDescriptionException{
@@ -35,7 +40,6 @@ public abstract class OpDirections {
       throw createException( getOp_name()+" operands must have the same bit length" );
   }
   protected State binaryOperation( Circuit c, State[] operands ) throws Exception {
-    c.build();
     State in = State.fromConcatenation(operands[0], operands[1]);
     return c.startExecuting( in );
   }
