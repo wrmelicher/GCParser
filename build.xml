@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="PPEditDistance" default="compile">
+<project name="GCParser" default="compile">
 
   <target name="init" >
     <mkdir dir="build/classes" />

@@ -25,7 +25,7 @@ public abstract class OpCircuitUser extends OpDirections {
       res = create_circuit( operands );
       res.build();
       cached_circuits.put( id, res );
-    } 
+    }
     return execute( operands, res );
   }
   public abstract Circuit create_circuit( State[] operands ) throws Exception ;

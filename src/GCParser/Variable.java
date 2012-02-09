@@ -11,6 +11,7 @@ public abstract class Variable implements Comparable<Variable> {
   private int party;
   protected Map<Computed_Variable, Integer> parents;
   private boolean feedsLocally = true;
+  protected boolean local_eval_visit;
 
   public Variable(String idarg, int partyarg ,int lineNumArg){
     party = partyarg;
@@ -86,10 +87,15 @@ public abstract class Variable implements Comparable<Variable> {
   public CircuitDescriptionException createException( String mes ){
     return new CircuitDescriptionException( mes, getLineNum() );
   }
-  public void reset(){}
+  public void reset(){
+    local_eval_visit = false;
+  }
   public void localEval( int party, Variable_Context con ) throws Exception {
+    if( local_eval_visit )
+      return;
     if( feedsLocally(con) )
       con.remove(this);
+    local_eval_visit = true;
   }
   public int bitCount() {
     try{

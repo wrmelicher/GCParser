@@ -26,6 +26,7 @@ public class Computed_Variable extends Variable {
     return children;
   }
   public void reset(){
+    super.reset();
     if( value != null ) {
       for( int i = 0; i < children.length; i++ ){
 	children[i].reset();
@@ -59,6 +60,8 @@ public class Computed_Variable extends Variable {
     return numBits;
   }
   public void localEval( int party, Variable_Context con ) throws Exception {
+    if( local_eval_visit )
+      return;
     super.localEval( party, con );
     if( !feedsLocally( con ) && ( getParty() == Input_Variable.CLIENT || getParty() == Input_Variable.SERVER ) ){
       // replace with input variable

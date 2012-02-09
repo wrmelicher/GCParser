@@ -11,14 +11,18 @@ public class Variable_Context {
   private Set<String> inputs;
   private Map<String, Boolean> outVar;
   private Map<String, Input_Variable> collapsedVars;
+  private Set<Variable> computedParty;
   private boolean isReset;
+  private boolean local;
   public Variable_Context(){
     isReset = true;
+    local = false;
     inputs = new HashSet<String>();
     variables = new HashMap<String, Variable>();
     partyMap = new HashMap<Integer, Set<Input_Variable> >();
     outVar = new HashMap<String,Boolean>();
     collapsedVars = new HashMap<String, Input_Variable>();
+    computedParty = new HashSet<Variable>();
   }
   public void putVar( Variable v ) throws CircuitDescriptionException {
     v.validate();
@@ -35,6 +39,8 @@ public class Variable_Context {
 	partyMap.put(inv.getParty(),inlist);
       }
       inlist.add( inv );
+    } else if( ( v.getParty() == Input_Variable.SERVER || v.getParty() == Input_Variable.CLIENT ) && !local) {
+      computedParty.add( v );
     }
   }
   public Set<String> getInputs() {
@@ -68,9 +74,11 @@ public class Variable_Context {
       }
       v.setState(new State( in.get(s), v.bitcount ));
     }
-    for( String s : getOutputs() ){
-      get(s).localEval( party, this );
+    local = true;
+    for( Variable com : computedParty ){
+      com.localEval( party, this );
     }
+    local = false;
   }
   public void remove( Variable v ){
     variables.remove(v.getId());

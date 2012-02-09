@@ -87,6 +87,7 @@ public class GCParserServer extends ProgServer {
     GCParserCommon.oos.flush();
     int clientk = GCParserCommon.ois.readInt();
     Wire.K = Math.max( Wire.K, clientk );
+
     OpCircuitUser.clear_circuit_cache();
     StopWatch.taskTimeStamp("transfer inputs");
     outputState = gccom.context().execCircuit( inputState );
@@ -110,8 +111,7 @@ public class GCParserServer extends ProgServer {
     GCParserCommon.oos.flush();
     return outValues;
   }
-  protected void interpretResult() throws Exception {
-    System.out.println("output: ");
+  protected void interpretResult() throws Exception {System.out.println("output: ");
     Map<String,BigInteger> values = getOutputValues();
     for( String id : values.keySet() ){
       System.out.println(id+" = "+values.get(id));
