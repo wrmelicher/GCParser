@@ -44,7 +44,7 @@ public class TestParserFile {
     }
   }
   public static void printHelp(int exit){
-    System.out.println("TestParserFile [--help] [-d --debug] [-l --debug-local] FILES...");
+    System.out.println("TestParserFile [-h --help] [-d --debug] [-l --debug-local] FILES...");
     System.exit(exit);
   }
 }
