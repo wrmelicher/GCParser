@@ -1,3 +1,4 @@
+// Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package Test;
 import java.io.File;
 import GCParser.CircuitParser;

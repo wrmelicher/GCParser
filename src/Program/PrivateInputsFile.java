@@ -1,3 +1,4 @@
+// Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package Program;
 
 import java.io.*;

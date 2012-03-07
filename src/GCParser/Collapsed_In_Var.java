@@ -1,3 +1,4 @@
+// Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package GCParser;
 import YaoGC.State;
 class Collapsed_In_Var extends Input_Variable {
