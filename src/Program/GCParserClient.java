@@ -116,6 +116,7 @@ public class GCParserClient extends ProgClient {
     for( String id : values.keySet() ){
       System.out.println(id+" = "+values.get(id));
     }
+    GCParserCommon.printCircuitUsage();
   }
 
   protected void verify_result(){}

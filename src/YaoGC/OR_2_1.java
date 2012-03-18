@@ -7,6 +7,7 @@ import java.math.*;
 import Cipher.*;
 
 public abstract class OR_2_1 extends SimpleCircuit_2_1 {
+  private static long num_executed = 0;
     public OR_2_1() {
 	super("OR_2_1");
     }
@@ -98,4 +99,10 @@ public abstract class OR_2_1 extends SimpleCircuit_2_1 {
 
     	return false;
     }
+  public void counter(){
+    num_executed++;
+  }
+  public static long get_num_executed(){
+    return num_executed;
+  }
 }

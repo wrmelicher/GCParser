@@ -7,6 +7,7 @@ import java.math.*;
 import Utils.*;
 
 public class XOR_2_1 extends SimpleCircuit_2_1 {
+  private static long num_executed = 0;
     public XOR_2_1() {
 	super("XOR_2_1");
     }
@@ -19,6 +20,7 @@ public class XOR_2_1 extends SimpleCircuit_2_1 {
     }
 
     public void execute() {
+      counter();
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
 	Wire outWire = outputWires[0];
@@ -118,4 +120,10 @@ public class XOR_2_1 extends SimpleCircuit_2_1 {
     // Never used for XOR gate.
     protected void fillTruthTable() {}
     protected void execYao() {}
+  public void counter(){
+    num_executed++;
+  }
+  public static long get_num_executed(){
+    return num_executed;
+  }
 }

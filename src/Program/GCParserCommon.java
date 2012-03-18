@@ -2,7 +2,7 @@
 package Program;
 
 import GCParser.*;
-import GCParser.Operation.CircuitDescriptionException;
+import GCParser.Operation.*;
 import Utils.*;
 import YaoGC.*;
 
@@ -107,5 +107,25 @@ public class GCParserCommon extends ProgCommon{
 			  s.wires[bit].lbl + ", " +
 			  s.wires[bit].lbl.xor(Wire.R.shiftLeft(1).setBit(0)) + ")" + Color.black);
     return false;
+  }
+  public static void printCircuitUsage(){
+    System.out.println("Elementary Circuits Used:");
+    for( int i = 0; i < 3; i++ ){
+      String name;
+      switch(i){
+      case OpCircuitUser.AND:
+	name = "AND";
+	break;
+      case OpCircuitUser.OR:
+	name = "OR";
+	break;
+      case OpCircuitUser.XOR:
+	name = "XOR";
+	break;
+      default:
+	name = "OTHER";
+      }
+      System.out.println( name+": "+OpCircuitUser.get_executed_num(i) );
+    }
   }
 }

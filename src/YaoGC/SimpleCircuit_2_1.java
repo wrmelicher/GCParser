@@ -39,6 +39,8 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
 	// if (this instanceof AND_2_1 || this instanceof OR_2_1)
 	//     counter++;
 
+      counter();
+
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
 	Wire outWire = outputWires[0];
@@ -223,4 +225,5 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
 	    System.out.println(Color.black);
 	}
     }
+  public abstract void counter();
 }
