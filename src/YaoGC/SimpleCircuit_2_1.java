@@ -8,7 +8,7 @@ import Utils.*;
 
 public abstract class SimpleCircuit_2_1 extends Circuit {
   // this flag controls profiling the number of circuits executed
-  public final boolean profile_count = true;
+  public static final boolean profile_count = false;
     protected BigInteger[][] gtt;
 
     // public static int counter = 0;

@@ -15,6 +15,8 @@ public abstract class OpCircuitUser extends OpDirections {
   public static final int OR  = 1;
   public static final int XOR = 2;
   
+  private static boolean profile_count = SimpleCircuit_2_1.profile_count;
+  
   public OpCircuitUser( String name ){
     super(name);
     circuit_ops.put( name, this );
@@ -36,13 +38,17 @@ public abstract class OpCircuitUser extends OpDirections {
     }
     long[] start = new long[3];
     long[] end = new long[3];
-    get_cir_num( start );
+    
+    if( profile_count )
+      get_cir_num( start );
     
     State ans = execute( operands, res );
- 
-    get_cir_num( end );
-    for( int i = 0; i < 3; i++ ){
-      cir_executed[i] += end[i] - start[i];
+    
+    if( profile_count ){
+      get_cir_num( end );
+      for( int i = 0; i < 3; i++ ){
+	cir_executed[i] += end[i] - start[i];
+      }
     }
     return ans;
   }

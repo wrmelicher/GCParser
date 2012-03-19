@@ -11,6 +11,8 @@ import java.io.*;
 import java.util.*;
 
 public class GCParserCommon extends ProgCommon{
+  
+  private static boolean profile_count = SimpleCircuit_2_1.profile_count;
 
   private Variable_Context context;
   private File desc;
@@ -109,6 +111,8 @@ public class GCParserCommon extends ProgCommon{
     return false;
   }
   public static void printCircuitUsage(){
+    if( !profile_count )
+      return;
     System.out.println("Elementary Circuits Used:");
     for( int i = 0; i < 3; i++ ){
       String name;
