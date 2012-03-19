@@ -20,7 +20,8 @@ public class XOR_2_1 extends SimpleCircuit_2_1 {
     }
 
     public void execute() {
-      counter();
+      if( profile_count )
+	counter();
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
 	Wire outWire = outputWires[0];

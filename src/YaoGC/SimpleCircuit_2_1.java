@@ -7,7 +7,8 @@ import Cipher.Cipher;
 import Utils.*;
 
 public abstract class SimpleCircuit_2_1 extends Circuit {
-
+  // this flag controls profiling the number of circuits executed
+  public final boolean profile_count = true;
     protected BigInteger[][] gtt;
 
     // public static int counter = 0;
@@ -38,8 +39,8 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
     protected void execute() {
 	// if (this instanceof AND_2_1 || this instanceof OR_2_1)
 	//     counter++;
-
-      counter();
+      if( profile_count )
+	counter();
 
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
