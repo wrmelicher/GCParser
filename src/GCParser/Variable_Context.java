@@ -21,6 +21,8 @@ public class Variable_Context {
     inputs = new HashSet<String>();
     variables = new HashMap<String, Variable>();
     partyMap = new HashMap<Integer, Set<Input_Variable> >();
+    partyMap.put( Input_Variable.SERVER, new HashSet<Input_Variable>() );
+    partyMap.put( Input_Variable.CLIENT, new HashSet<Input_Variable>() );
     outVar = new HashMap<String,Boolean>();
     collapsedVars = new HashMap<String, Input_Variable>();
     computedParty = new HashSet<Variable>();
