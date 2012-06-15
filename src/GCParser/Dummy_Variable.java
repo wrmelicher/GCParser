@@ -1,8 +1,6 @@
 // Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package GCParser;
 import YaoGC.State;
-import java.math.BigInteger;
-import java.util.Map;
 import GCParser.Operation.CircuitDescriptionException;
 
 public class Dummy_Variable extends Computed_Variable {

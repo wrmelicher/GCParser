@@ -16,7 +16,7 @@ public class ZextendOperation extends OpDirections {
 
     State zeros = new State( BigInteger.ZERO, to - from );
 
-    return State.fromConcatenation( zeros, inputs[0] );
+    return State.fromConcatenation( inputs[0], zeros );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length != 2 )

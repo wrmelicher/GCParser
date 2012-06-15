@@ -40,11 +40,11 @@ public class MUX_2Lplus1_L extends CompositeCircuit {
 	    outputWires[i] = subCircuits[i].outputWires[0];
     }
 
-    static int X(int i) {
+  public static int X(int i) {
 	return 2*i+1;
     }
 
-    static int Y(int i) {
+  public static int Y(int i) {
 	return 2*i;
     }
 

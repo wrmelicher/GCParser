@@ -39,6 +39,8 @@ public class OperationNameResolver {
     new TruncOperation();
     new SextendOperation();
     new ZextendOperation();
+    new SetOperation();
+    new ChoseOperation();
   }
   public static State executeFromName( String op_name, State[] operands ) throws Exception {
     return get(op_name).execute(operands);

@@ -93,6 +93,9 @@ public class Variable_Context {
       collapsedVars.put( v.getId(),(Input_Variable) v );
   }
   public void validate() throws CircuitDescriptionException {
+    if( getOutputs().isEmpty() ){
+      throw new CircuitDescriptionException( "No outputs are defined" );
+    }
     if( ! variables.keySet().containsAll( getOutputs() ) ){
       getOutputs().removeAll( variables.keySet() );
       String error = "Output variable(s) not defined: ";

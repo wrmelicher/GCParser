@@ -147,7 +147,7 @@ TOKEN: {
   | < START_PARTY : ".startparty" > 
   | < END_PARTY : ".endparty" >
   | < PATH : "<" (~[ ">", "\n" ])* ">" >
-  | < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] )* >
+  | < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] | "_" )* >
   | < INTEGER : ("-")? (["0"-"9"])+ >
   | < COMMENT : "//" (~[ "\n" ])* >
 }
@@ -160,11 +160,8 @@ void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException,
   ( Version_Line() )
   ( (InputLine())? LineEnding() )+
 
-  OutputLine() LineEnding()
-  ( ( OutputLine() )? LineEnding() )*
-
-  Calculation()
-  ( LineEnding() ( Calculation() )? )*
+    ( Calculation() | OutputLine() )
+    ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>
   {
     try{
@@ -367,7 +364,7 @@ String Identifier():
 }
 BigInteger Digits():
 { Token t; }
-{ 
+{
   t = <INTEGER>
   { 
     try{ 
