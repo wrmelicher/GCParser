@@ -41,6 +41,7 @@ public class OperationNameResolver {
     new ZextendOperation();
     new SetOperation();
     new ChoseOperation();
+    new ConcatlsOperation();
   }
   public static State executeFromName( String op_name, State[] operands ) throws Exception {
     return get(op_name).execute(operands);
