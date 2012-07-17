@@ -30,6 +30,10 @@ public class OrOperation extends OpCircuitUser {
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length == 1 ){
+      int o = operands[0].validate();
+      if( o < 2 ){
+	throw createException("Unary or operation requires at least two bits");
+      }
       return 1;
     } else {
       binaryOperation( operands );
