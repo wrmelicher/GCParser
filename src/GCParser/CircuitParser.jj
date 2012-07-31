@@ -14,7 +14,7 @@ PARSER_BEGIN( CircuitParser )
     private int major_version;
     private int minor_version;
     
-    private int lineNumber;
+    public static int lineNumber;
     private boolean errors;
     private int partyComp = Input_Variable.ALL;
     private File file = null;
@@ -135,7 +135,6 @@ TOKEN: {
     < COLON : ":" >
   | < PERIOD : "." >
   | < COMMA : "," >
-  | < LINE_ENDING : "\n" >
   | < OPEN_PAREN : "(" >
   | < CLOSE_PAREN : ")" > 
   | < INPUT_MARK : ".input" >
@@ -147,9 +146,14 @@ TOKEN: {
   | < START_PARTY : ".startparty" > 
   | < END_PARTY : ".endparty" >
   | < PATH : "<" (~[ ">", "\n" ])* ">" >
+  | < LINE_ENDING : "\r\n" | "\n" | "\r" >
   | < IDENTIFIER : ["a"-"z"] ( ["a"-"z"] | ["0"-"9"] | "_" )* >
   | < INTEGER : ("-")? (["0"-"9"])+ >
-  | < COMMENT : "//" (~[ "\n" ])* >
+}
+
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* >
 }
 
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:

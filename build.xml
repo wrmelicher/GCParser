@@ -4,6 +4,7 @@
   <target name="init" >
     <mkdir dir="build/classes" />
     <mkdir dir="dist" />
+    <mkdir dir="results" />
     <mkdir dir="src/GCParser/generated_files" />
   </target>
   

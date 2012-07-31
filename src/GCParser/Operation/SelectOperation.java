@@ -31,7 +31,7 @@ public class SelectOperation extends OpDirections {
 	( getOp_name()+": start bit cannot be greater than end bit" );
     if( var < end )
       throw createException
-	( getOp_name()+": end bit cannot be greater than bit width");
+	( getOp_name()+": end bit cannot be greater than bit width of "+var);
     return end-start;
   }
 }
