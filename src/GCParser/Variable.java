@@ -10,7 +10,7 @@ public abstract class Variable implements Comparable<Variable> {
   private String id;
   private int debugLineNum;
   private int party;
-  protected Map<Computed_Variable, Integer> parents;
+  private Map<Computed_Variable, Integer> parents;
   private boolean feedsLocally = true;
   protected boolean local_eval_visit;
 

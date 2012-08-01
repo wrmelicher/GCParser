@@ -38,6 +38,7 @@ public class Computed_Variable extends Variable {
       State[] inputs = new State[children.length];
       for( int i = 0; i < children.length; i++ ){
 	inputs[i] = children[i].executeDebug();
+	children[i] = null;
       }
       value = op.execute( inputs );
     }

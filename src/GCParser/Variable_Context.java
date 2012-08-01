@@ -99,7 +99,6 @@ public class Variable_Context {
     isReset = true;
   }
   public Map<String,State> execCircuit(){
-    OperationNameResolver.initOperations();
     Iterator<String> outit = getOutputs().iterator();
     Map<String, State> ans = new HashMap<String, State>();
     while( outit.hasNext() ){
@@ -125,6 +124,9 @@ public class Variable_Context {
     if( !isReset )
       resetCircuit();
     setInVals( inputVals );
+    inVar = null;
+    collapsedVars = null;
+    computedParty = null;
     return execCircuit();
   }
   public Collection<Input_Variable> getInVarsOfParty( int party ){
