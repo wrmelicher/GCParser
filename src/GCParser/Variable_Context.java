@@ -14,7 +14,6 @@ public class Variable_Context {
   private boolean isReset;
   private boolean local;
 
-
   private static class OutPair {
     private Variable var;
     private boolean signed;

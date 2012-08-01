@@ -174,6 +174,8 @@ void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException,
       ( (Calculation()) LineEnding() )*
       PartyChange() LineEnding() )*
 
+    { execute_streaming = true; }
+    
     ( Calculation() | OutputLine() )
     ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>
@@ -194,8 +196,7 @@ void Version_Line():
   ( <VERSION> 
     major = IntDigits()
     <PERIOD>
-    minor = IntDigits()
-  )?
+    minor = IntDigits() )?
   {
     major_version = major;
     minor_version = minor;
@@ -240,14 +241,10 @@ void OutputLine() throws CircuitDescriptionException:
 {
   <OUTPUT_MARK> 
   outid = Identifier()
-  ( 
-    ( <SIGNED_MARK> 
-    { isSigned = true; }
-    ) | ( 
-    <UNSIGNED_MARK> 
-    { isSigned = false; }
-    ) 
-  )?
+  ( ( <SIGNED_MARK> 
+    { isSigned = true; } ) |
+    ( <UNSIGNED_MARK> 
+    { isSigned = false; } ) )?
   {
     Variable outvar = getVar( outid );
     context.addOutput(outvar, isSigned );
