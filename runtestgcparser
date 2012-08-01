@@ -8,4 +8,4 @@ java -ea -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test
 
 sleep 0.8
 
-java -ea -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f "$INFILE" -p "$CLIENT" --server localhost -r 1 > results/siclientout &
+java -ea -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f "$INFILE" -p "$CLIENT" --server localhost -r 1 > results/siclientout 
