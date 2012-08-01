@@ -7,68 +7,61 @@ import GCParser.Operation.CircuitDescriptionException;
 import java.math.BigInteger;
 public class Variable_Context {
 
-  private Map<String, Variable> variables;
-  private Map<Integer, Set<Input_Variable> > partyMap;
-  private Set<String> inputs;
-  private Map<String, Boolean> outVar;
+  private Map<String, Input_Variable> inVar;
+  private Map<String, OutPair> outVar;
   private Map<String, Input_Variable> collapsedVars;
   private Set<Variable> computedParty;
   private boolean isReset;
   private boolean local;
+
+
+  private static class OutPair {
+    private Variable var;
+    private boolean signed;
+    public OutPair( Variable v, boolean s ){
+      var = v;
+      signed = s;
+    }
+  }
+  
   public Variable_Context(){
     isReset = true;
     local = false;
-    inputs = new HashSet<String>();
-    variables = new HashMap<String, Variable>();
-    partyMap = new HashMap<Integer, Set<Input_Variable> >();
-    partyMap.put( Input_Variable.SERVER, new HashSet<Input_Variable>() );
-    partyMap.put( Input_Variable.CLIENT, new HashSet<Input_Variable>() );
-    outVar = new HashMap<String,Boolean>();
+    outVar = new HashMap<String,OutPair>();
+    inVar = new HashMap<String,Input_Variable>();
     collapsedVars = new HashMap<String, Input_Variable>();
     computedParty = new HashSet<Variable>();
   }
   public void putVar( Variable v ) throws CircuitDescriptionException {
     v.validate();
-    Variable old = variables.put( v.getId(), v );
-    if( old != null )
-      throw v.createException(
-	("Variable \""+v.getId()+"\" previously defined (on line "+old.getLineNum()+")") );
     if( v instanceof Input_Variable ){
       Input_Variable inv = (Input_Variable) v;
-      inputs.add( inv.getId() );
-      Set<Input_Variable> inlist = partyMap.get( inv.getParty() );
-      if( inlist == null ){
-	inlist = new HashSet<Input_Variable>();
-	partyMap.put(inv.getParty(),inlist);
-      }
-      inlist.add( inv );
+      inVar.put( inv.getId(), inv );
     } else if( ( v.getParty() == Input_Variable.SERVER || v.getParty() == Input_Variable.CLIENT ) && !local) {
       computedParty.add( v );
     }
   }
   public Set<String> getInputs() {
-    return inputs;
+    return inVar.keySet();
   }
   public Set<String> getOutputs() {
     return outVar.keySet();
   }
   public boolean isSigned( String name ){
-    return outVar.get(name);
+    return outVar.get(name).signed;
   }
-  public void addOutput( String name, boolean signed ){
-    outVar.put( name, signed );
+  public void addOutput( Variable v, boolean signed ){
+    outVar.put( v.getId(), new OutPair( v, signed ) );
   }
-  public Variable get( String name ){
-    return variables.get(name);
+
+  private Variable getOutVar( String name ){
+    return outVar.get( name ).var;
   }
-  public Input_Variable getInVar(String name ){
-    Variable v = get(name);
-    if( v instanceof Input_Variable ){
-      return (Input_Variable)v;
-    } else {
-      return null;
-    }
+
+  public Input_Variable getInVar( String name ){
+    return inVar.get( name );
   }
+  
   public void collapseLocalVars( Map<String,BigInteger> in, int party ) throws Exception {
     for( String s : in.keySet() ){
       Input_Variable v = getInVar(s);
@@ -84,11 +77,7 @@ public class Variable_Context {
     local = false;
   }
   public void remove( Variable v ){
-    variables.remove(v.getId());
-    inputs.remove(v.getId());
-    Set<Input_Variable> list = partyMap.get( v.getParty() );
-    if( list != null )
-      list.remove(v);
+    inVar.remove(v.getId());
     if( v instanceof Input_Variable )
       collapsedVars.put( v.getId(),(Input_Variable) v );
   }
@@ -96,24 +85,12 @@ public class Variable_Context {
     if( getOutputs().isEmpty() ){
       throw new CircuitDescriptionException( "No outputs are defined" );
     }
-    if( ! variables.keySet().containsAll( getOutputs() ) ){
-      getOutputs().removeAll( variables.keySet() );
-      String error = "Output variable(s) not defined: ";
-      Iterator<String> it = getOutputs().iterator();
-      while( it.hasNext() ){
-	error+= it.next();
-	if( it.hasNext() ){
-	  error+=", ";
-	}
-      }
-      throw new CircuitDescriptionException(error);
-    }
   }
   public void resetCircuit(){
     Iterator<String> outit = getOutputs().iterator();
     while( outit.hasNext() ){
       String id = outit.next();
-      Variable out = get(id);
+      Variable out = getOutVar(id);
       if( out == null ){
 	System.out.println("Output variable \""+id+"\" not defined...Exiting");
 	System.exit(1);
@@ -128,7 +105,7 @@ public class Variable_Context {
     Map<String, State> ans = new HashMap<String, State>();
     while( outit.hasNext() ){
       String id = outit.next();
-      Variable out = get(id);
+      Variable out = getOutVar( id );
       if( out == null ){
 	System.out.println("Output variable \""+id+"\" not defined...Exiting");
 	System.exit(1);
@@ -141,7 +118,7 @@ public class Variable_Context {
     Iterator<String> it = in.keySet().iterator();
     while( it.hasNext() ){
       String id = it.next();
-      Input_Variable var = (Input_Variable) get( id );
+      Input_Variable var = getInVar( id );
       var.setState( in.get( id ) );
     }
   }
@@ -152,7 +129,13 @@ public class Variable_Context {
     return execCircuit();
   }
   public Collection<Input_Variable> getInVarsOfParty( int party ){
-    return partyMap.get( party );
+    List<Input_Variable> ans = new LinkedList<Input_Variable>();
+    for( String s : getInputs() ){
+      if( getInVar(s).getParty() == party ){
+	ans.add( getInVar(s) );
+      }
+    }
+    return ans;
   }
   public Collection<Input_Variable> getPrivInOfParty( int party ){
     // get private inputs to supply
@@ -182,20 +165,20 @@ public class Variable_Context {
     for( Iterator<String> it = other.getInputs().iterator(); it.hasNext(); ){
       String otherInId = it.next();
       Variable arg = inMap.get(otherInId);
-      Input_Variable join = (Input_Variable)(other.get(otherInId));
+      Input_Variable join = (other.getInVar(otherInId));
       join.replaceWith(arg);
     }
     for( Iterator<String> it = other.getOutputs().iterator(); it.hasNext(); ){
       String otherOutId = it.next();
       String newVarName = outMap.get( otherOutId );
-      Variable newVar = other.get( otherOutId );
+      Variable newVar = other.getOutVar( otherOutId );
       Variable dummyVar = Dummy_Variable.newInstance( newVarName, lineNum, newVar );
       putVar( dummyVar );
     }
   }
   public void debugPrint(){
     for( String s: getOutputs() ){
-      get(s).debugPrint();
+      getOutVar(s).debugPrint();
     }
   }
 }

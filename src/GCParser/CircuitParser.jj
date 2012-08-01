@@ -13,12 +13,14 @@ PARSER_BEGIN( CircuitParser )
 
     private int major_version;
     private int minor_version;
-    
+
+    private Map<String, Variable> var_map;
     private int lineNumber;
     private boolean errors;
     private int partyComp = Input_Variable.ALL;
     private File file = null;
     private boolean included = false;
+    private boolean execute_streaming = false;
     private Set<File> ancestorIncludes = new TreeSet<File>();
 
     private CircuitParser( File readFrom, InputStream io ) {
@@ -42,6 +44,7 @@ PARSER_BEGIN( CircuitParser )
 
     public Variable_Context read() throws CircuitDescriptionException {
       context = new Variable_Context();
+      var_map = new HashMap<String, Variable>();
       lineNumber = 1;
       errors = false;
       try {
@@ -62,11 +65,18 @@ PARSER_BEGIN( CircuitParser )
       }
       return context;
     }
-    private Variable getVar( String name ){
-      return context.get(name);
+    private Variable getVar( String name ) throws CircuitDescriptionException {
+      Variable var = var_map.get(name);
+      if( var == null ){
+	throw new CircuitDescriptionException("Variable \""+name+"\" not defined", lineNumber );
+      }
+      return var;
     }
     private void putVar( Variable v ) {
       try{
+	Variable old = var_map.put( v.getId(), v );
+	if( old != null )
+	  throw v.createException("Variable \""+v.getId()+"\" previously defined (on line "+old.getLineNum()+")");
 	context.putVar(v);
       } catch ( CircuitDescriptionException e ){
 	log( e );
@@ -160,6 +170,10 @@ void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException,
   ( Version_Line() )
   ( (InputLine())? LineEnding() )+
 
+    ( PartyChange() LineEnding()
+      ( (Calculation()) LineEnding() )*
+      PartyChange() LineEnding() )*
+
     ( Calculation() | OutputLine() )
     ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>
@@ -218,7 +232,7 @@ void InputLine() throws CircuitDescriptionException:
   }
 }
 
-void OutputLine():
+void OutputLine() throws CircuitDescriptionException:
 { 
   String outid;
   boolean isSigned = false;
@@ -235,15 +249,15 @@ void OutputLine():
     ) 
   )?
   {
-    context.addOutput(outid, isSigned );
+    Variable outvar = getVar( outid );
+    context.addOutput(outvar, isSigned );
   }
 }
 void Calculation() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
   ( EvalTerm() |
-  Include() |
-  PartyChange() )
+    Include() )
 }
 void PartyChange() throws CircuitDescriptionException:
 {
@@ -335,9 +349,6 @@ Variable VariableInput() throws CircuitDescriptionException:
     id = Identifier() 
     { 
       var = getVar(id);
-      if( var == null ){
-	throw new CircuitDescriptionException("Variable \""+id+"\" not defined", lineNumber );
-      }
       return var;
     }
   ) | (
