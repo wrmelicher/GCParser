@@ -20,7 +20,7 @@ public class GCParserServer extends ProgServer {
     outValues = null;
   }
   protected void init() throws Exception {
-    gccom.parseCircuit( Input_Variable.SERVER );
+    gccom.parseInputs( Input_Variable.SERVER );
     super.init();
   }
 
@@ -91,7 +91,9 @@ public class GCParserServer extends ProgServer {
 
     OpCircuitUser.clear_circuit_cache();
     StopWatch.taskTimeStamp("transfer inputs");
-    outputState = gccom.context().execCircuit( inputState );
+    gccom.context().setInVals( inputState );
+    gccom.parseCircuit();
+    outputState = gccom.context().execCircuit();
     StopWatch.taskTimeStamp("execution of circuit");
   }
   public Map<String,BigInteger> getOutputValues() throws Exception {

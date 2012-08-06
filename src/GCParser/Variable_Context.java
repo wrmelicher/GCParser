@@ -26,10 +26,10 @@ public class Variable_Context {
   public Variable_Context(){
     isReset = true;
     local = false;
-    outVar = new HashMap<String,OutPair>();
-    inVar = new HashMap<String,Input_Variable>();
-    collapsedVars = new HashMap<String, Input_Variable>();
-    computedParty = new HashSet<Variable>();
+    outVar = new TreeMap<String,OutPair>();
+    inVar = new TreeMap<String,Input_Variable>();
+    collapsedVars = new TreeMap<String, Input_Variable>();
+    computedParty = new TreeSet<Variable>();
   }
   public void putVar( Variable v ) throws CircuitDescriptionException {
     v.validate();
@@ -53,7 +53,7 @@ public class Variable_Context {
     outVar.put( v.getId(), new OutPair( v, signed ) );
   }
 
-  private Variable getOutVar( String name ){
+  public Variable getOutVar( String name ){
     return outVar.get( name ).var;
   }
 
@@ -112,21 +112,21 @@ public class Variable_Context {
     }
     return ans;
   }
-  private void setInVals( Map<String, State> in ){
+  public void setInVals( Map<String, State> in ){
     Iterator<String> it = in.keySet().iterator();
     while( it.hasNext() ){
       String id = it.next();
       Input_Variable var = getInVar( id );
       var.setState( in.get( id ) );
     }
+    inVar = null;
+    collapsedVars = null;
+    computedParty = null;
   }
   public Map<String,State> execCircuit( Map<String, State> inputVals ){
     if( !isReset )
       resetCircuit();
     setInVals( inputVals );
-    inVar = null;
-    collapsedVars = null;
-    computedParty = null;
     return execCircuit();
   }
   public Collection<Input_Variable> getInVarsOfParty( int party ){
@@ -161,21 +161,6 @@ public class Variable_Context {
   }
   public int getNumVarsOfParty( int party ){
     return getInVarsOfParty( party ).size();
-  }
-  public void addContextWithMapping( Variable_Context other, Map<String,Variable> inMap, Map<String,String> outMap , int lineNum) throws CircuitDescriptionException {
-    for( Iterator<String> it = other.getInputs().iterator(); it.hasNext(); ){
-      String otherInId = it.next();
-      Variable arg = inMap.get(otherInId);
-      Input_Variable join = (other.getInVar(otherInId));
-      join.replaceWith(arg);
-    }
-    for( Iterator<String> it = other.getOutputs().iterator(); it.hasNext(); ){
-      String otherOutId = it.next();
-      String newVarName = outMap.get( otherOutId );
-      Variable newVar = other.getOutVar( otherOutId );
-      Variable dummyVar = Dummy_Variable.newInstance( newVarName, lineNum, newVar );
-      putVar( dummyVar );
-    }
   }
   public void debugPrint(){
     for( String s: getOutputs() ){

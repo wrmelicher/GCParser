@@ -14,7 +14,7 @@ public class GCParserCommon extends ProgCommon{
   
   private static boolean profile_count = SimpleCircuit_2_1.profile_count;
 
-  private Variable_Context context;
+  private ExecutingParser parser;
   private File desc;
   private PrivateInputProvider pip;
 
@@ -22,9 +22,10 @@ public class GCParserCommon extends ProgCommon{
     desc = DESC;
     pip = PIP;
   }
-  public void parseCircuit( int party ) throws Exception {
+  public void parseInputs( int party ) throws Exception {
     try {
-      context = CircuitParser.read(desc);
+      parser = ExecutingParser.fromFile( desc );
+      parser.readInputs();
     } catch (CircuitDescriptionException e) {
       System.out.println(e.getMessage()+"...Exiting");
       System.exit(1);
@@ -34,19 +35,29 @@ public class GCParserCommon extends ProgCommon{
       System.exit(1);
     }
     Map<String,BigInteger> privIns = getPrivateInputs(party);
-    context.collapseLocalVars( privIns, party );
+    context().collapseLocalVars( privIns, party );
   }
+  public void parseCircuit() throws Exception {
+    try {
+      parser.read();
+    } catch (CircuitDescriptionException e) {
+      System.out.println(e.getMessage()+"...Exiting");
+      System.exit(1);
+    }
+  }
+
+    
   public Variable_Context context(){
-    return context;
+    return parser.context();
   }
   public void reset(){
-    context.resetCircuit();
+    context().resetCircuit();
   }
   public void setPIP( PrivateInputProvider PIP ){
     pip = PIP;
   }
   public Boolean isSignedHint( String name ){
-    return context.isSigned(name);
+    return context().isSigned(name);
   }
   public Map<String,BigInteger> getPrivateInputs(int party) throws Exception {
     Iterator<Input_Variable> it = context().getPrivInOfParty(party).iterator();

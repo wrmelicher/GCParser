@@ -1,19 +1,21 @@
 // Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package Test;
 import java.io.File;
-import GCParser.CircuitParser;
-import GCParser.Variable_Context;
+import java.io.FileOutputStream;
+import GCParser.OptimizingParser;
 import jargs.gnu.CmdLineParser;
 import java.util.TreeMap;
 import java.math.BigInteger;
 public class TestParserFile {
   public static boolean DEBUG = false;
   public static boolean DEBUG_LOCAL = false;
+  public static boolean OPTIMIZE = false;
   public static String[] parse_args(String[] args){
     CmdLineParser parser = new CmdLineParser();
     CmdLineParser.Option debug = parser.addBooleanOption('d',"debug");
     CmdLineParser.Option help = parser.addBooleanOption('h',"help");
     CmdLineParser.Option debug_local = parser.addBooleanOption('l',"debug-local");
+    CmdLineParser.Option output_opt = parser.addBooleanOption('o',"optimize");
 
     try{
       parser.parse(args);
@@ -25,18 +27,24 @@ public class TestParserFile {
     }
     DEBUG = (Boolean) parser.getOptionValue(debug,false);
     DEBUG_LOCAL = (Boolean) parser.getOptionValue(debug_local,false);
+    OPTIMIZE = (Boolean) parser.getOptionValue(output_opt,false);
     return parser.getRemainingArgs();
   }
   public static void main( String[] args ){
     String[] files = parse_args(args);
     for( String s : files ){
       try {
-	Variable_Context v = CircuitParser.read( new File(s) );
-	if( DEBUG_LOCAL ){
-	  v.collapseLocalVars( new TreeMap<String,BigInteger>(), 1 );
-	}
+	File f = new File(s);
+	OptimizingParser v = OptimizingParser.fromFile( f );
+	v.parse();
+	/*if( DEBUG_LOCAL ){
+	  v.context().collapseLocalVars( new TreeMap<String,BigInteger>(), 1 );
+	  }
 	if( DEBUG || DEBUG_LOCAL ){
-	  v.debugPrint();
+	  v.context().debugPrint();
+	  }*/
+	if(OPTIMIZE){
+	  v.print( new FileOutputStream(new File(f.getPath()+".opt") ) );
 	}
 	System.out.println(s+": ok");
       } catch (Exception e){

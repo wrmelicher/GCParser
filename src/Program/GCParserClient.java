@@ -20,7 +20,7 @@ public class GCParserClient extends ProgClient {
     inputState = new HashMap<String,State>();
   }
   protected void init() throws Exception {
-    gccom.parseCircuit( Input_Variable.CLIENT );
+    gccom.parseInputs( Input_Variable.CLIENT );
     otNumOfPairs = gccom.context().getBitsOfParty(Input_Variable.CLIENT);
     super.init();
   }
@@ -90,7 +90,9 @@ public class GCParserClient extends ProgClient {
     Wire.K = Math.max( Wire.K, serverk );
     OpCircuitUser.clear_circuit_cache();
     StopWatch.taskTimeStamp("transfer inputs");
-    outputState = gccom.context().execCircuit( inputState );
+    gccom.context().setInVals( inputState );
+    gccom.parseCircuit();
+    outputState = gccom.context().execCircuit();
     StopWatch.taskTimeStamp("execution of circuit");
   }
   public Map<String,BigInteger> getOutputValues() throws Exception {
