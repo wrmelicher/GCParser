@@ -10,7 +10,7 @@ public abstract class Variable implements Comparable<Variable> {
   private String id;
   private int debugLineNum;
   private int party;
-  protected Map<Computed_Variable, Integer> parents;
+  private Map<Computed_Variable, Integer> parents;
   private boolean feedsLocally = true;
   protected boolean local_eval_visit;
 
@@ -119,14 +119,8 @@ public abstract class Variable implements Comparable<Variable> {
   }
 
   public Input_Variable createFrom(Variable_Context con) throws Exception {
-    Collapsed_In_Var newV;
-    Variable v = con.get( "_"+getId() );
-    if( v != null && v instanceof Collapsed_In_Var )
-      newV = (Collapsed_In_Var) v;
-    else {
-      newV = new Collapsed_In_Var( this );
-      con.putVar( newV );
-    }
+    Collapsed_In_Var newV = new Collapsed_In_Var( this );
+    con.putVar( newV );
     return newV;
   }
 }

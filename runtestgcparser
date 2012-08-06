@@ -4,10 +4,10 @@ INFILE="$1"
 SERVER="$2"
 CLIENT="$3"
 
-MEMORY_INFO="-Xss1024k"
+JAVA_MEM="-Xss1m"
 
-java "$MEMORY_INFO" -ea -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test.TestGCParserServer -f "$INFILE" -p "$SERVER" -w 80 > results/siserverout &
+java -ea $JAVA_MEM -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test.TestGCParserServer -f "$INFILE" -p "$SERVER" -w 80 > results/siserverout &
 
 sleep 0.8
 
-java "$MEMORY_INFO" -ea -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f "$INFILE" -p "$CLIENT" --server localhost -r 1 > results/siclientout
+java -ea $JAVA_MEM -cp dist/GCParser.jar:extlibs/commons-io-1.4.jar:extlibs/jargs.jar Test.TestGCParserClient -f "$INFILE" -p "$CLIENT" --server localhost -r 1 > results/siclientout 
