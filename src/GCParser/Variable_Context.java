@@ -2,7 +2,6 @@
 package GCParser;
 import java.util.*;
 import YaoGC.State;
-import YaoGC.Circuit;
 import GCParser.Operation.CircuitDescriptionException;
 import java.math.BigInteger;
 public class Variable_Context {
@@ -85,6 +84,7 @@ public class Variable_Context {
       throw new CircuitDescriptionException( "No outputs are defined" );
     }
   }
+  /*
   public void resetCircuit(){
     Iterator<String> outit = getOutputs().iterator();
     while( outit.hasNext() ){
@@ -97,7 +97,7 @@ public class Variable_Context {
       out.reset();
     }
     isReset = true;
-  }
+    }*/
   public Map<String,State> execCircuit(){
     Iterator<String> outit = getOutputs().iterator();
     Map<String, State> ans = new HashMap<String, State>();
@@ -124,8 +124,8 @@ public class Variable_Context {
     computedParty = null;
   }
   public Map<String,State> execCircuit( Map<String, State> inputVals ){
-    if( !isReset )
-      resetCircuit();
+    /*if( !isReset )
+      resetCircuit();*/
     setInVals( inputVals );
     return execCircuit();
   }

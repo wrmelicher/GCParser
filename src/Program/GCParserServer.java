@@ -31,14 +31,15 @@ public class GCParserServer extends ProgServer {
     }
     return lbs;
   }
+  /*
   public void reset(){
     outValues = null;
     gccom.reset();
-  }
+    }
   public void reset( PrivateInputProvider p ){
     gccom.setPIP(p);
     reset();
-  }
+    }*/
 
   protected void execTransfer() throws Exception {
     int bytelength = (Wire.labelBitLength-1)/8 + 1;

@@ -51,6 +51,9 @@ public abstract class Variable implements Comparable<Variable> {
       feedsLocally = false;
     parents.put(v, childNum);
   }
+  public void removeParent( Computed_Variable v ){
+      parents.remove(v);
+  }
   public Variable replaceWith( Variable v ){
     for( Iterator<Computed_Variable> it = parents.keySet().iterator(); it.hasNext(); ){
       Computed_Variable parent = it.next();

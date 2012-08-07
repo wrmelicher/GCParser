@@ -24,6 +24,7 @@ public class Computed_Variable extends Variable {
   public Variable[] getChildren(){
     return children;
   }
+  /*
   public void reset(){
     super.reset();
     if( value != null ) {
@@ -32,13 +33,14 @@ public class Computed_Variable extends Variable {
       }
     }
     value = null;
-  }
+    }*/
   public State execute() throws Exception {
     if( value == null ){
       State[] inputs = new State[children.length];
       for( int i = 0; i < children.length; i++ ){
 	inputs[i] = children[i].executeDebug();
-	children[i] = null;
+	children[i].removeParent(this);
+        children[i] = null;
       }
       value = op.execute( inputs );
     }

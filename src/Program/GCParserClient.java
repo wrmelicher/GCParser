@@ -24,10 +24,11 @@ public class GCParserClient extends ProgClient {
     otNumOfPairs = gccom.context().getBitsOfParty(Input_Variable.CLIENT);
     super.init();
   }
+  /*
   public void reset(){
     gccom.reset();
     outValues = null;
-  }
+    }*/
   public void reset( PrivateInputProvider p ){
     gccom.setPIP(p);
     reset();

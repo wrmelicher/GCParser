@@ -4,7 +4,7 @@ INFILE="$1"
 SERVER="$2"
 CLIENT="$3"
 
-JAVA_MEM="-Xss1m"
+JAVA_MEM=""
 
 java -ea $JAVA_MEM -cp dist/GCParser.jar:extlibs/jargs.jar:extlibs/commons-io-1.4.jar Test.TestGCParserServer -f "$INFILE" -p "$SERVER" -w 80 > results/siserverout &
 
