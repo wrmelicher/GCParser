@@ -91,9 +91,10 @@ public abstract class Variable implements Comparable<Variable> {
   public CircuitDescriptionException createException( String mes ){
     return new CircuitDescriptionException( mes, getLineNum() );
   }
+  /*
   public void reset(){
     local_eval_visit = false;
-  }
+    }*/
   public void localEval( int party, Variable_Context con ) throws Exception {
     if( local_eval_visit )
       return;

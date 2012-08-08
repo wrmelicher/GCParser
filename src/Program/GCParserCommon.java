@@ -50,9 +50,10 @@ public class GCParserCommon extends ProgCommon{
   public Variable_Context context(){
     return parser.context();
   }
-  public void reset(){
-    context().resetCircuit();
-  }
+
+  // public void reset(){
+  //   context().resetCircuit();
+  // }
   public void setPIP( PrivateInputProvider PIP ){
     pip = PIP;
   }

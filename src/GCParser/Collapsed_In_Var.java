@@ -21,7 +21,8 @@ class Collapsed_In_Var extends Input_Variable {
     super.setState(v);
     computingParty = -1;
   }
+  /*
   public void reset(){
     other.reset();
-  }
+    }*/
 }

@@ -4,12 +4,22 @@ public abstract class VariableInfo {
   private boolean alreadyPrint = false;
   private String name;
   private int parents = 0;
+  private int party;
+  protected static OptimizingParser parser;
   public VariableInfo( String n ){
     name = n;
   }
 
   public void addParent(){
     parents += 1;
+  }
+
+  public void setParty( int i ){
+    party = i;
+  }
+  
+  public int getParty(){
+    return party;
   }
 
   public void subParent( PrintStream ps ){
@@ -23,9 +33,9 @@ public abstract class VariableInfo {
     return name;
   }
 
-  public void printSafe( PrintStream ps ){
+  public void printSafe(){
     if( !alreadyPrint ){
-      print(ps);
+      print();
       alreadyPrint = true;
     }
   }
@@ -33,5 +43,5 @@ public abstract class VariableInfo {
     return getName().hashCode();
   }
   
-  public void print(PrintStream ps){}
+  public void print(){}
 }

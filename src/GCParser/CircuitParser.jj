@@ -134,6 +134,10 @@ PARSER_BEGIN( CircuitParser )
       return ancestorIncludes.contains(other.getCanonicalFile());
     }
 
+    protected void removeVar( String key ) {
+      var_map.remove( key );
+    }
+
     private void includeFile( String fname, Map<String,T> inMap, Map<String,String> outMap ) throws CircuitDescriptionException, FileNotFoundException, IOException {
       File includeFile = new File( fname ); 
       if( !includeFile.isAbsolute() ){
@@ -269,7 +273,7 @@ void RemoveVar() throws CircuitDescriptionException:
   <REMOVE_MARK>
     temp = Identifier()
   {
-    var_map.remove( temp );
+    removeVar( temp );
   }
 }
 

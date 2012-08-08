@@ -8,27 +8,33 @@ import GCParser.Operation.CircuitDescriptionException;
 
 public class OptimizingParser extends CircuitParser<VariableInfo> {
 
-  private OptimizingParser( File f, InputStream i ){
+  private PrintStream ps;
+  private Set<VariableInfo> inputs = new HashSet<VariableInfo>();
+  private Map<VariableInfo,Boolean> outputs = new HashMap<VariableInfo,Boolean>();
+  
+  private OptimizingParser( File f, InputStream i, OutputStream os ){
     super( f, i );
+    ps = new PrintStream( os );
   }
 
   public static OptimizingParser fromFile( File f ) throws FileNotFoundException {
-    return new OptimizingParser( f, new FileInputStream(f) );
+    return new OptimizingParser( f, new FileInputStream(f), new FileOutputStream( new File( f.getPath()+".opt") ) );
   }
 
-  private Set<VariableInfo> inputs = new HashSet<VariableInfo>();
-  private Map<VariableInfo,Boolean> outputs = new HashMap<VariableInfo,Boolean>();
-
-  public void print( OutputStream f ) throws IOException {
-    PrintStream out = new PrintStream( f );
+  public void print() throws IOException {
+    VariableInfo.parser = this;
     for( VariableInfo v : inputs ){
-      v.printSafe( out );
+      v.printSafe();
     }
     for( VariableInfo v: outputs.keySet() ){
-      v.printSafe( out );
-      out.println(".output "+v.getName() + (outputs.get(v) ? " signed" : "") );
+      v.printSafe();
+      ps.println(".output "+v.getName() + (outputs.get(v) ? " signed" : "") );
     }
-    out.close();
+    ps.close();
+  }
+
+  public PrintStream out(){
+    return ps;
   }
   
   protected VariableInfo computedVariable( String name, OpDirections op, List<VariableInfo> args ) throws CircuitDescriptionException{
@@ -39,6 +45,7 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
     inputs.add(i);
     return i;
   }
+  
   protected void addOutput( VariableInfo val, boolean signed ) throws CircuitDescriptionException{
     outputs.put( val, signed );
   }

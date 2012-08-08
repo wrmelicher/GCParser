@@ -29,10 +29,10 @@ public class GCParserClient extends ProgClient {
     gccom.reset();
     outValues = null;
     }*/
-  public void reset( PrivateInputProvider p ){
-    gccom.setPIP(p);
-    reset();
-  }
+  // public void reset( PrivateInputProvider p ){
+  //   gccom.setPIP(p);
+  //   reset();
+  // }
 
   protected void execTransfer() throws Exception {
     int bytelength = (Wire.labelBitLength-1)/8 + 1;
