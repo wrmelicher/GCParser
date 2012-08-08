@@ -44,7 +44,7 @@ public class TestParserFile {
 	  v.context().debugPrint();
 	  }*/
 	if(OPTIMIZE){
-	  v.print( new FileOutputStream(new File(f.getPath()+".opt") ) );
+	  v.print();
 	}
 	System.out.println(s+": ok");
       } catch (Exception e){
