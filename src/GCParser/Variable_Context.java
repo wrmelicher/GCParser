@@ -25,10 +25,10 @@ public class Variable_Context {
   public Variable_Context(){
     isReset = true;
     local = false;
-    outVar = new TreeMap<String,OutPair>();
-    inVar = new TreeMap<String,Input_Variable>();
-    collapsedVars = new TreeMap<String, Input_Variable>();
-    computedParty = new TreeSet<Variable>();
+    outVar = new HashMap<String,OutPair>();
+    inVar = new HashMap<String,Input_Variable>();
+    collapsedVars = new HashMap<String, Input_Variable>();
+    computedParty = new HashSet<Variable>();
   }
   public void putVar( Variable v ) throws CircuitDescriptionException {
     v.validate();
