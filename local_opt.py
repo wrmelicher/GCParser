@@ -28,6 +28,8 @@ for line in file.xreadlines():
         party_mode = int( args[1] )
     elif args[0] == ".endparty":
         party_mode = 0
+    elif args[0] == ".remove" and args[1] in could_be_local:
+        local_lines[ could_be_local[args[1] ] ] += line
     elif args[0][0] == ".":
         continue
     else:
