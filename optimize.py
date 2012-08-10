@@ -12,6 +12,8 @@ int_re = re.compile("^[0-9]")
 
 for line in file.xreadlines():
     args = line.split()
+    if len(args) == 0:
+        continue
     if args[0] == ".output":
         valid.add( args[1] )
     if args[0][0] == ".":

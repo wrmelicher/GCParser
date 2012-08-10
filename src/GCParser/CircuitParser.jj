@@ -189,12 +189,14 @@ void InputSection() throws CircuitDescriptionException, FileNotFoundException, I
     ( PartyChange() LineEnding()
       ( (Calculation()) LineEnding() )*
       PartyChange() LineEnding() )*
+
+    ( RemoveVar() LineEnding() )*
 }
 
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
-  ( Calculation() | OutputLine() )
+  ( NonRemoveCalc() | OutputLine() )
     ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>
 }
@@ -267,6 +269,13 @@ void Calculation() throws CircuitDescriptionException, FileNotFoundException, IO
   ( EvalTerm() |
     Include() |
     RemoveVar() )
+}
+
+void NonRemoveCalc() throws CircuitDescriptionException, FileNotFoundException, IOException:
+{}
+{
+  ( EvalTerm() |
+    Include() )
 }
 
 void RemoveVar() throws CircuitDescriptionException:

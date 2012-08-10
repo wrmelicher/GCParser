@@ -7,9 +7,8 @@ else:
     file = open( sys.argv[1], 'r' )
 
 int_re = re.compile("^[0-9]")
-spec_re = re.compile("^\\.")
 
-vars = {}
+var_map = {}
 party_mode = 0
 
 could_be_local = {}
@@ -20,12 +19,12 @@ linenum = 0
 for line in file.xreadlines():
     args = line.split()
     linenum += 1
+    if len( args ) == 0:
+        continue
     if args[0] == ".input":
-        vars[ args[1] ] = int( args[2] )
+        var_map[ args[1] ] = int( args[2] )
     elif args[0] == ".remove":
-        if args[1] in could_be_local and party_mode != 0:
-            local_lines[ could_be_local[args[1] ] ] += line            
-        del vars[ args[1] ]
+        del var_map[ args[1] ]
     elif args[0] == ".startparty":
         party_mode = int( args[1] )
     elif args[0] == ".endparty":
@@ -37,18 +36,18 @@ for line in file.xreadlines():
         for arg in args[2:]:
             if re.match(int_re, arg) != None: 
                 continue
-            if not arg in vars:
+            if not arg in var_map:
                 raise Exception("cannot identify "+arg+" on line "+str(linenum) )
-            if vars[arg] != party_mode and party_mode != 0:
+            if var_map[arg] != party_mode and party_mode != 0:
                 raise Exception("cannot calculate "+args[0]+" when it depends on "+arg+" on line "+str(linenum) )
             if party_arg == 0:
-                party_arg = vars[arg]
-            if party_arg != vars[arg]:
+                party_arg = var_map[arg]
+            if party_arg != var_map[arg]:
                 party_arg = -1;
         if party_arg > 0 and party_arg != party_mode:
             local_lines[party_arg] += line
             could_be_local[ args[0] ] = party_arg
-        vars[ args[0] ] = party_arg
+        var_map[ args[0] ] = party_arg
 
 
 in_party = False
