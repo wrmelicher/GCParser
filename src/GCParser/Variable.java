@@ -51,6 +51,11 @@ public abstract class Variable implements Comparable<Variable> {
       feedsLocally = false;
     parents.put(v, childNum);
   }
+
+  public void setFeedsLocally( boolean b ){
+    feedsLocally = b;
+  }
+  
   public void removeParent( Computed_Variable v ){
       parents.remove(v);
   }

@@ -102,6 +102,10 @@ PARSER_BEGIN( CircuitParser )
       errors = true;
     }
 
+    protected Set<String> curVars() {
+      return var_map.keySet();
+    }
+
     protected T getVar( String name ) throws CircuitDescriptionException {
       T var = var_map.get(name);
       if( var == null ){

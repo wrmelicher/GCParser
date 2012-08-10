@@ -23,13 +23,13 @@ for line in file.xreadlines():
     if args[0] == ".input":
         vars[ args[1] ] = int( args[2] )
     elif args[0] == ".remove":
+        if args[1] in could_be_local and party_mode != 0:
+            local_lines[ could_be_local[args[1] ] ] += line            
         del vars[ args[1] ]
     elif args[0] == ".startparty":
         party_mode = int( args[1] )
     elif args[0] == ".endparty":
         party_mode = 0
-    elif args[0] == ".remove" and args[1] in could_be_local:
-        local_lines[ could_be_local[args[1] ] ] += line
     elif args[0][0] == ".":
         continue
     else:
@@ -60,6 +60,8 @@ for line in file.xreadlines():
         in_party = True
     elif args[0] == ".endparty":
         in_party = False
+    elif args[0] == ".remove" and args[1] in could_be_local:
+        continue
     elif not printed_locals and not in_party and args[0][0] != ".":
         print ".startparty 1"
         print local_lines[1],

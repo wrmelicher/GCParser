@@ -10,6 +10,12 @@ public abstract class OpCircuitUser extends OpDirections {
   protected Map<Integer,Circuit> cached_circuits;
 
   private static long[] cir_executed = {0, 0, 0};
+  private static long[] local_cir_executed = {0, 0, 0};
+
+  private static boolean local_eval = true;
+  public static void doneWithLocalComp(){
+    local_eval = false;
+  }
   
   public static final int AND = 0;
   public static final int OR  = 1;
@@ -46,8 +52,14 @@ public abstract class OpCircuitUser extends OpDirections {
     
     if( profile_count ){
       get_cir_num( end );
+      long[] counter;
+      if( local_eval ){
+	counter = local_cir_executed;
+      } else {
+	counter = cir_executed;
+      }
       for( int i = 0; i < 3; i++ ){
-	cir_executed[i] += end[i] - start[i];
+	counter[i] += end[i] - start[i];
       }
     }
     return ans;
@@ -57,8 +69,8 @@ public abstract class OpCircuitUser extends OpDirections {
 
   public abstract State execute( State[] operands, Circuit c ) throws Exception;
   
-  public static long get_executed_num( int cir ){
-    return cir_executed[cir];
+  public static long get_executed_num( int cir, boolean local ){
+    return local ? local_cir_executed[cir] : cir_executed[cir];
   }
 
   private void get_cir_num( long[] ans ){

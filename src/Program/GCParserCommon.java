@@ -36,6 +36,7 @@ public class GCParserCommon extends ProgCommon{
     }
     Map<String,BigInteger> privIns = getPrivateInputs(party);
     context().collapseLocalVars( privIns, party );
+    OpCircuitUser.doneWithLocalComp();
   }
   public void parseCircuit() throws Exception {
     try {
@@ -122,26 +123,37 @@ public class GCParserCommon extends ProgCommon{
 			  s.wires[bit].lbl.xor(Wire.R.shiftLeft(1).setBit(0)) + ")" + Color.black);
     return false;
   }
+
+  private static String intToCircuitName( int i ){
+    String name;
+    switch(i){
+    case OpCircuitUser.AND:
+      name = "AND";
+      break;
+    case OpCircuitUser.OR:
+      name = "OR";
+      break;
+    case OpCircuitUser.XOR:
+      name = "XOR";
+      break;
+    default:
+      name = "OTHER";
+    }
+    return name;
+  }
+
+  private static void printCircuitUsage( boolean local ){
+    System.out.println("Elementary circuits computed "+ ( local ? "locally" : "") + ":");
+    for( int i = 0; i < 3; i++ ){
+      String name = intToCircuitName( i );
+      System.out.println( name+": "+OpCircuitUser.get_executed_num(i, local) );
+    }
+  }
+  
   public static void printCircuitUsage(){
     if( !profile_count )
       return;
-    System.out.println("Elementary Circuits Used:");
-    for( int i = 0; i < 3; i++ ){
-      String name;
-      switch(i){
-      case OpCircuitUser.AND:
-	name = "AND";
-	break;
-      case OpCircuitUser.OR:
-	name = "OR";
-	break;
-      case OpCircuitUser.XOR:
-	name = "XOR";
-	break;
-      default:
-	name = "OTHER";
-      }
-      System.out.println( name+": "+OpCircuitUser.get_executed_num(i) );
-    }
+    printCircuitUsage( true );
+    printCircuitUsage( false );
   }
 }
