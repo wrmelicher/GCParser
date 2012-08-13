@@ -28,10 +28,8 @@ public class ExecutingParser extends CircuitParser<Variable> {
 
   public void readInputs() throws CircuitDescriptionException {
     super.readInputs();
-    System.out.println(curVars().size());
     for( String id : curVars() ){
       Variable v = getVar(id);
-      System.err.println(id);
       v.setFeedsLocally( false );
     }
   }

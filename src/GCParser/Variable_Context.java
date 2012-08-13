@@ -63,9 +63,6 @@ public class Variable_Context {
   public void collapseLocalVars( Map<String,BigInteger> in, int party ) throws Exception {
     for( String s : in.keySet() ){
       Input_Variable v = getInVar(s);
-      if( v == null ){
-	v = collapsedVars.get(s);
-      }
       v.setState(new State( in.get(s), v.bitcount ));
     }
     local = true;

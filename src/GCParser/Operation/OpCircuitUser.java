@@ -52,12 +52,7 @@ public abstract class OpCircuitUser extends OpDirections {
     
     if( profile_count ){
       get_cir_num( end );
-      long[] counter;
-      if( local_eval ){
-	counter = local_cir_executed;
-      } else {
-	counter = cir_executed;
-      }
+      long[] counter = local_eval ? local_cir_executed : cir_executed;
       for( int i = 0; i < 3; i++ ){
 	counter[i] += end[i] - start[i];
       }

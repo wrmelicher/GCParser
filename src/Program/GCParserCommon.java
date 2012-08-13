@@ -36,10 +36,11 @@ public class GCParserCommon extends ProgCommon{
     }
     Map<String,BigInteger> privIns = getPrivateInputs(party);
     context().collapseLocalVars( privIns, party );
-    OpCircuitUser.doneWithLocalComp();
+
   }
   public void parseCircuit() throws Exception {
     try {
+      OpCircuitUser.doneWithLocalComp();
       parser.read();
     } catch (CircuitDescriptionException e) {
       System.out.println(e.getMessage()+"...Exiting");
@@ -143,7 +144,7 @@ public class GCParserCommon extends ProgCommon{
   }
 
   private static void printCircuitUsage( boolean local ){
-    System.out.println("Elementary circuits computed "+ ( local ? "locally" : "") + ":");
+    System.out.println("Elementary circuits computed"+ ( local ? " locally" : "") + ":");
     for( int i = 0; i < 3; i++ ){
       String name = intToCircuitName( i );
       System.out.println( name+": "+OpCircuitUser.get_executed_num(i, local) );

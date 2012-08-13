@@ -25,6 +25,7 @@ PARSER_BEGIN( CircuitParser )
     protected CircuitParser( File readFrom, InputStream io ) {
       this( io );
       file = readFrom;
+
     }
     protected CircuitParser( File readFrom, InputStream io, CircuitParser p ) throws IOException {
       this( readFrom, io );
@@ -71,6 +72,7 @@ PARSER_BEGIN( CircuitParser )
       lineNumber = 1;
       errors = false;
       var_map = new TreeMap<String, T>();
+      Variable.executer = this;
       try {
 	InputSection();
       } catch ( CircuitDescriptionException e ){

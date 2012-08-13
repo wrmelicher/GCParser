@@ -13,6 +13,7 @@ public abstract class Variable implements Comparable<Variable> {
   private Map<Computed_Variable, Integer> parents;
   private boolean feedsLocally = true;
   protected boolean local_eval_visit;
+  public static CircuitParser executer;
 
   public Variable(String idarg, int partyarg ,int lineNumArg){
     party = partyarg;
@@ -66,6 +67,14 @@ public abstract class Variable implements Comparable<Variable> {
       Variable[] siblings = parent.getChildren();
       siblings[ i ] = v;
       v.addParent( parent, i );
+    }
+    executer.removeVar( getId() );
+    try {
+      executer.putVar( getId(), v );
+    } catch( CircuitDescriptionException e ){
+      // shouldn't ever happen
+      System.out.println( e.getMessage() );
+      System.exit(1);
     }
     return this;
   }
