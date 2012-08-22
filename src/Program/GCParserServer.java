@@ -5,6 +5,7 @@ import YaoGC.*;
 import Utils.*;
 import GCParser.Input_Variable;
 import GCParser.Operation.OpCircuitUser;
+import GCParser.OutputFormat;
 
 import java.math.*;
 import java.util.*;
@@ -100,15 +101,11 @@ public class GCParserServer extends ProgServer {
   public Map<String,BigInteger> getOutputValues() throws Exception {
     if( outValues != null )
       return outValues;
-    outValues= new HashMap<String,BigInteger>();
+    outValues = new HashMap<String,BigInteger>();
     for( int i = 0; i < outputState.size(); i++ ){
       String id = (String) GCParserCommon.ois.readObject();
       BigInteger[] lbs = (BigInteger[]) GCParserCommon.ois.readObject();
-      BigInteger val;
-      if( gccom.isSignedHint( id ) )
-	val = GCParserCommon.interpretSigned( outputState.get(id), lbs );
-      else 
-	val = GCParserCommon.interpretUnsigned( outputState.get(id), lbs );
+      BigInteger val = gccom.context().getOutputFormat( id ).interpret( outputState.get(id), lbs );
       outValues.put( id, val );
     }
     GCParserCommon.oos.writeObject( outValues );
@@ -118,7 +115,8 @@ public class GCParserServer extends ProgServer {
   protected void interpretResult() throws Exception {System.out.println("output: ");
     Map<String,BigInteger> values = getOutputValues();
     for( String id : values.keySet() ){
-      System.out.println(id+" = "+values.get(id));
+      OutputFormat fmt = gccom.context().getOutputFormat( id );
+      System.out.println(id+" = "+fmt.printFormat(values.get(id)));
     }
     GCParserCommon.printCircuitUsage();
   }

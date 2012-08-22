@@ -127,7 +127,7 @@ PARSER_BEGIN( CircuitParser )
 
     protected abstract T computedVariable( String name, OpDirections op, List<T> args ) throws CircuitDescriptionException;
     protected abstract T inputVariable( String name, int party, int bits ) throws CircuitDescriptionException;
-    protected abstract void addOutput( T val, boolean signed ) throws CircuitDescriptionException;
+    protected abstract void addOutput( T val, OutputFormat fmt ) throws CircuitDescriptionException;
     protected abstract T constantVariable( BigInteger value, int bits ) throws CircuitDescriptionException;
     protected abstract void include( File fname, Map<String,T> inMap, Map<String,String> outMap )
       throws CircuitDescriptionException, FileNotFoundException, IOException ;
@@ -166,7 +166,8 @@ TOKEN: {
   | < COMMA : "," >
   | < LINE_ENDING : "\n" >
   | < OPEN_PAREN : "(" >
-  | < CLOSE_PAREN : ")" > 
+  | < CLOSE_PAREN : ")" >
+  | < HEX : "hex" >
   | < INPUT_MARK : ".input" >
   | < OUTPUT_MARK : ".output" >
   | < REMOVE_MARK : ".remove" >
@@ -251,18 +252,19 @@ void InputLine() throws CircuitDescriptionException:
 void OutputLine() throws CircuitDescriptionException:
 { 
   String outid;
-  boolean isSigned = false;
+  OutputFormat fmt = new OutputFormat(false);
 }
 {
   <OUTPUT_MARK> 
   outid = Identifier()
   ( ( <SIGNED_MARK> 
-    { isSigned = true; } ) |
+    { fmt = new OutputFormat(true); } ) |
     ( <UNSIGNED_MARK> 
-    { isSigned = false; } ) )?
+    {} ) |
+    ( <HEX> { fmt = new HexFormat(); } ) )?
   {
     T outvar = getVar( outid );
-    addOutput(outvar, isSigned );
+    addOutput( outvar, fmt );
   }
 }
 void Calculation() throws CircuitDescriptionException, FileNotFoundException, IOException:

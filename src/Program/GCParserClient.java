@@ -117,7 +117,8 @@ public class GCParserClient extends ProgClient {
     System.out.println("output: ");
     Map<String,BigInteger> values = getOutputValues();
     for( String id : values.keySet() ){
-      System.out.println(id+" = "+values.get(id));
+      OutputFormat fmt = gccom.context().getOutputFormat( id );
+      System.out.println(id+" = "+fmt.printFormat(values.get(id)));
     }
     GCParserCommon.printCircuitUsage();
   }

@@ -59,7 +59,7 @@ public class ExecutingParser extends CircuitParser<Variable> {
     return ans;
   }
   
-  protected void addOutput( Variable val, boolean signed ) throws CircuitDescriptionException {
+  protected void addOutput( Variable val, OutputFormat signed ) throws CircuitDescriptionException {
     context().addOutput( val, signed );
   }
   

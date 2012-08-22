@@ -39,8 +39,6 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
     protected void execute() {
 	// if (this instanceof AND_2_1 || this instanceof OR_2_1)
 	//     counter++;
-      if( profile_count )
-	counter();
 
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
@@ -76,6 +74,9 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
 	    }
 	    else {
 		execYao();
+		if( profile_count )
+		  counter();
+
 	    }
 	}
 	

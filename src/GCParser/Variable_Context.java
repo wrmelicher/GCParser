@@ -15,10 +15,10 @@ public class Variable_Context {
 
   private static class OutPair {
     private Variable var;
-    private boolean signed;
-    public OutPair( Variable v, boolean s ){
+    private OutputFormat fmt;
+    public OutPair( Variable v, OutputFormat f ){
       var = v;
-      signed = s;
+      fmt = f;
     }
   }
   
@@ -45,11 +45,14 @@ public class Variable_Context {
   public Set<String> getOutputs() {
     return outVar.keySet();
   }
-  public boolean isSigned( String name ){
-    return outVar.get(name).signed;
+  public OutputFormat getOutputFormat( String name ){
+    return outVar.get(name).fmt;
   }
-  public void addOutput( Variable v, boolean signed ){
-    outVar.put( v.getId(), new OutPair( v, signed ) );
+  public void addOutput( Variable v, OutputFormat fmt ){
+    outVar.put( v.getId(), new OutPair( v, fmt ) );
+  }
+  public void addOutput( Variable v, boolean b ){
+    addOutput(v, new OutputFormat(b) );
   }
 
   public Variable getOutVar( String name ){
