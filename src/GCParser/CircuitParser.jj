@@ -170,6 +170,7 @@ TOKEN: {
   | < HEX : "hex" >
   | < INPUT_MARK : ".input" >
   | < OUTPUT_MARK : ".output" >
+  | < PROFILER : ".profile" >
   | < REMOVE_MARK : ".remove" >
   | < SIGNED_MARK : "signed" >
   | < INCLUDE : ".include" >
@@ -186,8 +187,8 @@ TOKEN: {
 void InputSection() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
-  ( Version_Line() )
-  ( (InputLine())? LineEnding() )+
+  Version_Line()
+    ( InputLine() LineEnding() )+
 
     ( PartyChange() LineEnding()
       ( (Calculation()) LineEnding() )*
@@ -199,7 +200,7 @@ void InputSection() throws CircuitDescriptionException, FileNotFoundException, I
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
-  ( NonRemoveCalc() | OutputLine() )
+  NonRemoveCalc()
     ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>
 }
@@ -212,7 +213,8 @@ void Version_Line():
   ( <VERSION> 
     major = IntDigits()
     <PERIOD>
-    minor = IntDigits() )?
+    minor = IntDigits()
+    LineEnding() )?
   {
     major_version = major;
     minor_version = minor;
@@ -259,8 +261,7 @@ void OutputLine() throws CircuitDescriptionException:
   outid = Identifier()
   ( ( <SIGNED_MARK> 
     { fmt = new OutputFormat(true); } ) |
-    ( <UNSIGNED_MARK> 
-    {} ) |
+    ( <UNSIGNED_MARK> ) |
     ( <HEX> { fmt = new HexFormat(); } ) )?
   {
     T outvar = getVar( outid );
@@ -272,14 +273,29 @@ void Calculation() throws CircuitDescriptionException, FileNotFoundException, IO
 {
   ( EvalTerm() |
     Include() |
-    RemoveVar() )
+    RemoveVar() |
+    Profile() )
+}
+
+void Profile() throws CircuitDescriptionException:
+{
+  String profile_id = "";
+}
+{
+  <PROFILER>
+    ( profile_id = Identifier() )?
+  {
+    OpCircuitUser.setActiveCounter( profile_id );
+  }
 }
 
 void NonRemoveCalc() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
-  ( EvalTerm() |
-    Include() )
+  EvalTerm() |
+    Include() |
+    Profile() |
+    OutputLine()
 }
 
 void RemoveVar() throws CircuitDescriptionException:

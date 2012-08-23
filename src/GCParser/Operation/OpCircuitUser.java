@@ -12,9 +12,29 @@ public abstract class OpCircuitUser extends OpDirections {
   private static long[] cir_executed = {0, 0, 0};
   private static long[] local_cir_executed = {0, 0, 0};
 
+  private static Stack< ArrayList<Long> > active_counter = new Stack< ArrayList<Long> >();
+  private static Map<String, ArrayList<Long> > profile_map =
+    new HashMap<String, ArrayList<Long> >();
+
   private static boolean local_eval = true;
   public static void doneWithLocalComp(){
     local_eval = false;
+  }
+  public static void setActiveCounter( String name ){
+    if( name.equals("") ){
+      active_counter.pop();
+      return;
+    }
+    if( profile_map.containsKey(name) ){
+      active_counter.push( profile_map.get(name) );
+    } else {
+      ArrayList<Long> toadd = new ArrayList<Long>(3);
+      active_counter.push(toadd);
+      toadd.add(0L);
+      toadd.add(0L);
+      toadd.add(0L);
+      profile_map.put(name,toadd);
+    }
   }
   
   public static final int AND = 0;
@@ -45,14 +65,22 @@ public abstract class OpCircuitUser extends OpDirections {
     long[] start = new long[3];
     long[] end = new long[3];
     
-    if( profile_count )
+    if( profile_count ){
       get_cir_num( start );
+    }
     
     State ans = execute( operands, res );
     
     if( profile_count ){
       get_cir_num( end );
       long[] counter = local_eval ? local_cir_executed : cir_executed;
+      if( active_counter != null ){
+	for( ArrayList<Long> active : active_counter ){
+	  for( int i = 0; i < 3 ; i++ ){
+	    active.set( i, active.get(i) + (end[i] - start[i]) );
+	  }
+	}
+      }
       for( int i = 0; i < 3; i++ ){
 	counter[i] += end[i] - start[i];
       }
@@ -66,6 +94,9 @@ public abstract class OpCircuitUser extends OpDirections {
   
   public static long get_executed_num( int cir, boolean local ){
     return local ? local_cir_executed[cir] : cir_executed[cir];
+  }
+  public static Map<String, ArrayList<Long> > getProfileInfo(){
+    return profile_map;
   }
 
   private void get_cir_num( long[] ans ){

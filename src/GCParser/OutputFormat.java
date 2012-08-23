@@ -15,6 +15,10 @@ public class OutputFormat {
     return val.toString();
   }
 
+  public String printIdentifier(){
+    return signed ? "signed" : "unsigned";
+  }
+
   public BigInteger interpret( State s, BigInteger[] lbs ) throws Exception {
     return signed ? interpretSigned( s, lbs ) : interpretUnsigned( s, lbs );
   }

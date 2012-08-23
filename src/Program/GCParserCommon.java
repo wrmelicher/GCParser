@@ -108,11 +108,22 @@ public class GCParserCommon extends ProgCommon{
       System.out.println( name+": "+OpCircuitUser.get_executed_num(i, local) );
     }
   }
+  private static void printCircuitUsage( ArrayList<Long> data ){
+    for( int i = 0; i < 3; i++ ){
+      String gateName = intToCircuitName( i );
+      System.out.println( gateName + ": " + data.get(i) );
+    }
+  }
   
   public static void printCircuitUsage(){
     if( !profile_count )
       return;
     printCircuitUsage( true );
     printCircuitUsage( false );
+    Map<String, ArrayList<Long> > profileInfo = OpCircuitUser.getProfileInfo();
+    for( String key : profileInfo.keySet() ){
+      System.out.println("Circuits for "+key);
+      printCircuitUsage( profileInfo.get(key) );
+    }
   }
 }

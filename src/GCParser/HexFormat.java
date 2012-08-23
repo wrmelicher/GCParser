@@ -7,4 +7,7 @@ public class HexFormat extends OutputFormat {
   public String printFormat(BigInteger val){
     return val.toString(16);
   }
+  public String printIdentifier(){
+    return "hex";
+  }
 }

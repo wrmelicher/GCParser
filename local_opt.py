@@ -14,6 +14,8 @@ party_mode = 0
 could_be_local = {}
 local_lines = { 1 : "", 2: "" }
 
+neutral = {}
+
 linenum = 0
 
 for line in file.xreadlines():
@@ -25,25 +27,20 @@ for line in file.xreadlines():
         var_map[ args[1] ] = int( args[2] )
     elif args[0] == ".remove":
         del var_map[ args[1] ]
-    elif args[0] == ".startparty":
-        party_mode = int( args[1] )
-    elif args[0] == ".endparty":
-        party_mode = 0
     elif args[0][0] == ".":
         continue
     else:
-        party_arg = 0
+        party_arg = []
         for arg in args[2:]:
+            arg_party = 0
             if re.match(int_re, arg) != None: 
-                continue
-            if not arg in var_map:
+                arg_party = 0
+            elif not arg in var_map:
                 raise Exception("cannot identify "+arg+" on line "+str(linenum) )
-            if var_map[arg] != party_mode and party_mode != 0:
-                raise Exception("cannot calculate "+args[0]+" when it depends on "+arg+" on line "+str(linenum) )
-            if party_arg == 0:
-                party_arg = var_map[arg]
-            if party_arg != var_map[arg]:
-                party_arg = -1;
+            elif var_map[arg] == 0:
+                neutral[arg] = line
+            
+            party_arg.append( arg_party )
         if party_arg > 0 and party_arg != party_mode:
             local_lines[party_arg] += line
             could_be_local[ args[0] ] = party_arg
