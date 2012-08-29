@@ -45,9 +45,8 @@ public class VariableInfo {
   }
 
   public void printOn( PrintStream ps ){
-    if( !beenPrinted.contains(ps) )
+    if( !definition().equals("") )
       ps.println(definition());
-    beenPrinted.add(ps);
   }
 
   public void addParent( VariableInfo i ){
@@ -64,15 +63,23 @@ public class VariableInfo {
   }
 
   public void printNeutralChildren(PrintStream ps){
-    for( VariableInfo child : children ){
-      child.printOn(ps);
+    if( beenPrinted.contains(ps) )
+      return;
+    if( children != null ){
+      for( VariableInfo child : children ){
+	if( child.getParty() == Input_Variable.NEUTRAL ){
+	  child.printNeutralChildren(ps);
+	}
+      }
     }
+    printOn(ps);
   }
 
   public void remove(){
     children = null;
     for( VariableInfo parent : parents ){
-      parent.children.remove(this);
+      if( getParty() != Input_Variable.NEUTRAL && parent.children != null )
+	parent.children.remove(this);
     }
     parents = null;
   }

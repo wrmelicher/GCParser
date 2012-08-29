@@ -17,7 +17,7 @@ PARSER_BEGIN( CircuitParser )
     private int lineNumber;
     private boolean errors;
     private int partyComp = Input_Variable.ALL;
-    private File file = null;
+    protected File file = null;
     private boolean included = false;
     private Map<String, T> var_map;
     private Set<File> ancestorIncludes = new TreeSet<File>();
@@ -170,9 +170,9 @@ TOKEN: {
   | < HEX : "hex" >
   | < INPUT_MARK : ".input" >
   | < OUTPUT_MARK : ".output" >
-  | < PROFILER : ".profile" >
-  | < REMOVE_MARK : ".remove" >
   | < SIGNED_MARK : "signed" >
+  | < REMOVE_MARK : ".remove" >
+  | < PROFILER : ".profile" >
   | < INCLUDE : ".include" >
   | < VERSION : ".version" >
   | < UNSIGNED_MARK : "unsigned" > 
@@ -188,18 +188,25 @@ void InputSection() throws CircuitDescriptionException, FileNotFoundException, I
 {}
 {
   Version_Line()
-    ( InputLine() LineEnding() )+
+    ( InputLine()
+      LineEnding() )+
 
-    ( PartyChange() LineEnding()
-      ( (Calculation()) LineEnding() )*
-      PartyChange() LineEnding() )*
+    ( PartyChange()
+      LineEnding()
+      ( Calculation()
+	LineEnding() )*
+      PartyChange()
+      LineEnding() )*
 
-    ( RemoveVar() LineEnding() )*
+    ( RemoveVar()
+      LineEnding() )*
+
 }
 
 void GarbledCircuit() throws CircuitDescriptionException, FileNotFoundException, IOException:
 {}
 {
+
   NonRemoveCalc()
     ( LineEnding() ( Calculation() | OutputLine() )? )*
   <EOF>

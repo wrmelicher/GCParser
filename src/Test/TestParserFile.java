@@ -1,8 +1,8 @@
 // Copyright (C) Billy Melicher 2012 wrm2ja@virginia.edu
 package Test;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import GCParser.OptimizingParser;
+import GCParser.Operation.CircuitDescriptionException;
 import jargs.gnu.CmdLineParser;
 import java.util.TreeMap;
 import java.math.BigInteger;
@@ -36,7 +36,6 @@ public class TestParserFile {
       try {
 	File f = new File(s);
 	OptimizingParser v = OptimizingParser.fromFile( f );
-	v.parse();
 	/*if( DEBUG_LOCAL ){
 	  v.context().collapseLocalVars( new TreeMap<String,BigInteger>(), 1 );
 	  }
@@ -45,11 +44,21 @@ public class TestParserFile {
 	  }*/
 	if(OPTIMIZE){
 	  v.print();
+	} else {
+	  v.parse();
 	}
 	System.out.println(s+": ok");
-      } catch (Exception e){
+      } catch (CircuitDescriptionException e){
+	System.out.println(s+": not ok -"+e.getMessage());
+      } catch (FileNotFoundException e ){
+	System.out.println(s+": not ok -"+e.getMessage());
+      } catch (IOException e ){
 	System.out.println(s+": not ok -"+e.getMessage());
       }
+      
+
+      
+      
     }
   }
   public static void printHelp(int exit){

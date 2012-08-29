@@ -11,34 +11,25 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
   private PrintStream otherComp;
   private PrintStream inputs;
   private List<PrintStream> localComp;
-  private List<File> streams = new LinkedList<File>();
   private List<PrintStream> all = new LinkedList<PrintStream>();
+  private List<ByteArrayOutputStream> all_out = new LinkedList<ByteArrayOutputStream>();
   
   private OptimizingParser( File f, InputStream i ){
     super( f, i );
-    otherComp = makeNew(f);
+
     inputs = makeNew(f);
     localComp = new LinkedList<PrintStream>();
     localComp.add( makeNew(f) );
     localComp.add( makeNew(f) );
+    otherComp = makeNew(f);
+    localComp.get(0).println(".startparty 1");
+    localComp.get(1).println(".startparty 2");
   }
 
   private PrintStream makeNew( File f ){
-    File tempFile = null;
-    try{
-      tempFile = File.createTempFile(f.getName(), "temp", f.getParentFile() );
-    } catch( IOException e ){
-      System.out.println(e.getMessage());
-      System.exit(1);
-    }
-    streams.add(tempFile);
-    PrintStream ans = null;
-    try{
-      ans = new PrintStream( new FileOutputStream(tempFile) );
-    } catch( FileNotFoundException e ){
-      System.out.println(e.getMessage());
-      System.exit(1);
-    }
+    ByteArrayOutputStream bs = new ByteArrayOutputStream();
+    all_out.add(bs);
+    PrintStream ans = new PrintStream( bs );
     all.add(ans);
     return ans;
   }
@@ -47,24 +38,31 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
     return new OptimizingParser( f, new FileInputStream(f) );
   }
 
-  public void print() throws CircuitDescriptionException {
+  public void print() throws CircuitDescriptionException, FileNotFoundException, IOException {
     parse();
+    localComp.get(0).println(".endparty 1");
+    localComp.get(1).println(".endparty 2");
     for( PrintStream ps : all ){
       ps.close();
     }
+    OutputStream out = System.out;
+    for( ByteArrayOutputStream bs : all_out ){
+      out.write( bs.toByteArray() );
+    }
+    out.close();
   }
 
   private void print( VariableInfo v ){
     PrintStream choose;
     if( v.getParty() == Input_Variable.ALL ){
-      choose = otherComp;      
+      choose = otherComp;
+      v.printNeutralChildren(choose);
     } else if( v.getParty() == Input_Variable.NEUTRAL ){
       return;
     } else {
       choose = localComp.get(v.getParty()-1);
       v.printNeutralChildren(choose);
     }
-    v.printOn(choose);
   }
   
   protected VariableInfo computedVariable( String name, OpDirections op, List<VariableInfo> args ) throws CircuitDescriptionException{
