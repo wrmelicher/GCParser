@@ -14,6 +14,7 @@ public class VariableInfo {
   private String printOut;
   private List<VariableInfo> parents = new LinkedList<VariableInfo>();
   private List<VariableInfo> children;
+  private int references = 1;
   public VariableInfo( String aName, int aParty, String print ){
     name = aName;
     party = aParty;
@@ -44,9 +45,15 @@ public class VariableInfo {
     return printOut;
   }
 
+  public void inc_references(){
+    references += 1;
+  }
+
   public void printOn( PrintStream ps ){
-    if( !definition().equals("") )
+    if( !definition().equals("") ){
       ps.println(definition());
+      beenPrinted.add(ps);
+    }
   }
 
   public void addParent( VariableInfo i ){
@@ -75,12 +82,17 @@ public class VariableInfo {
     printOn(ps);
   }
 
-  public void remove(){
+  public boolean remove(){
+    references--;
+    if( references > 0 )
+      return false;
+    
     children = null;
     for( VariableInfo parent : parents ){
       if( getParty() != Input_Variable.NEUTRAL && parent.children != null )
 	parent.children.remove(this);
     }
     parents = null;
+    return true;
   }
 }

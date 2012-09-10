@@ -13,7 +13,7 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
   private List<PrintStream> localComp;
   private List<PrintStream> all = new LinkedList<PrintStream>();
   private List<ByteArrayOutputStream> all_out = new LinkedList<ByteArrayOutputStream>();
-  
+
   private OptimizingParser( File f, InputStream i ){
     super( f, i );
 
@@ -66,8 +66,14 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
   }
   
   protected VariableInfo computedVariable( String name, OpDirections op, List<VariableInfo> args ) throws CircuitDescriptionException{
-    VariableInfo ans = VariableInfo.computedVariable( name, op, args );
-    print(ans);
+    VariableInfo ans;
+    if( op instanceof GCParser.Operation.SetOperation ){
+      ans = args.get(0);
+      ans.inc_references();
+    } else {
+      ans = VariableInfo.computedVariable( name, op, args );
+      print(ans);
+    }
     return ans;
   }
   
@@ -79,10 +85,10 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
 
   public void removeVar( String key ) {
     PrintStream choose = otherComp;
-    choose.println(".remove "+key);
     try {
       VariableInfo inf = getVar(key);
-      inf.remove();
+      if(inf.remove())
+	choose.println(".remove "+inf.getName());	
     } catch( CircuitDescriptionException e ){
       // do nothing
     }
