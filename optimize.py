@@ -8,7 +8,7 @@ else:
 
 valid = set()
 
-int_re = re.compile("^[0-9]")
+int_re = re.compile("^-?[0-9]")
 
 for line in file.xreadlines():
     args = line.split()
