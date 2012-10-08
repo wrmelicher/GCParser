@@ -37,7 +37,7 @@ abstract public class Circuit implements TransitiveObserver {
 
     protected void createInputWires() {
 	for (int i = 0; i < inDegree; i++) {
-	    inputWires[i] = new Wire();
+	    inputWires[i] = Wire.newWire();
 	}
     }
 
@@ -64,10 +64,18 @@ abstract public class Circuit implements TransitiveObserver {
 	    inputWires[i].value = s.wires[i].value;
 	    inputWires[i].invd = s.wires[i].invd;
 	    inputWires[i].setLabel(s.wires[i].lbl);
+	    if( SimpleCircuit_2_1.printer != null ){
+	      ((PrintWire)inputWires[i]).setPrintLabel( s.wires[i].printLabel );
+	      if( s.wires[i].value != Wire.UNKNOWN_SIG ){
+		((PrintWire)inputWires[i]).setPrintLabel( s.wires[i].value == 1 ?
+						     SimpleCircuit_2_1.printer.high() :
+						     SimpleCircuit_2_1.printer.low() );
+	      }
+	    }
 	    inputWires[i].setReady();
 	}
-
-	return State.fromWires(this.outputWires);
+	State out = State.fromWires( this.outputWires );
+	return out;
     }
 
     public BigInteger interpretOutputELabels(BigInteger[] eLabels) throws Exception {

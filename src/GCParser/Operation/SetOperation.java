@@ -9,6 +9,7 @@ public class SetOperation extends OpDirections {
   }
 
   public State execute(State[] inputs) throws Exception {
+    reusedWires(inputs[0]);
     return inputs[0];
   }
 

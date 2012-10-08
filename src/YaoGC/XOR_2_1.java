@@ -26,6 +26,16 @@ public class XOR_2_1 extends SimpleCircuit_2_1 {
 	Wire inWireR = inputWires[1];
 	Wire outWire = outputWires[0];
 
+      if( SimpleCircuit_2_1.printer != null ){
+	SimpleCircuit_2_1.printer.printComp( ((PrintWire)outWire).label(), name, 
+					     ((PrintWire)inWireL).label(),
+					     ((PrintWire)inWireR).label() );
+	outWire.value = Wire.UNKNOWN_SIG;
+	outWire.lbl = BigInteger.ZERO;	
+	outWire.setReady();
+	return;
+      }
+
 	if (inWireL.value != Wire.UNKNOWN_SIG && inWireR.value != Wire.UNKNOWN_SIG) {
 	    compute();
 	}

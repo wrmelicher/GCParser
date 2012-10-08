@@ -15,8 +15,9 @@ public class ZextendOperation extends OpDirections {
     int from = inputs[0].getWidth();
 
     State zeros = new State( BigInteger.ZERO, to - from );
-
-    return State.fromConcatenation( inputs[0], zeros );
+    reusedWires(inputs[0]);
+    State out = State.fromConcatenation( inputs[0], zeros );
+    return out;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length != 2 )

@@ -5,11 +5,13 @@ package YaoGC;
 import java.math.*;
 import Cipher.Cipher;
 import Utils.*;
+import GCParser.LowLevelCompiler;
 
 public abstract class SimpleCircuit_2_1 extends Circuit {
   // this flag controls profiling the number of circuits executed
   public static final boolean profile_count = true;
-    protected BigInteger[][] gtt;
+  protected BigInteger[][] gtt;
+  public static LowLevelCompiler printer = null;
 
     // public static int counter = 0;
 
@@ -33,16 +35,25 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
     }
 
     protected void createOutputWires() {
-	outputWires[0] = new Wire();
+	outputWires[0] = Wire.newWire();
     }
 
     protected void execute() {
 	// if (this instanceof AND_2_1 || this instanceof OR_2_1)
 	//     counter++;
-
 	Wire inWireL = inputWires[0];
 	Wire inWireR = inputWires[1];
 	Wire outWire = outputWires[0];
+	
+      if( SimpleCircuit_2_1.printer != null ){
+	SimpleCircuit_2_1.printer.printComp( ((PrintWire)outWire).label(), name, 
+					     ((PrintWire)inWireL).label(),
+					     ((PrintWire)inWireR).label() );
+	outWire.value = Wire.UNKNOWN_SIG;
+	outWire.lbl = BigInteger.ZERO;
+	outWire.setReady();
+	return;
+      }
 
 	if (inWireL.value != Wire.UNKNOWN_SIG && inWireR.value != Wire.UNKNOWN_SIG) {
 	    compute();

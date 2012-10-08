@@ -7,13 +7,13 @@ import java.math.BigInteger;
 
 public class ExecutingParser extends CircuitParser<Variable> {
   
-  private boolean execute_streaming = false;
+  protected boolean execute_streaming = false;
   private Variable_Context context = new Variable_Context();
   
-  private ExecutingParser( File f, InputStream s ){
+  protected ExecutingParser( File f, InputStream s ){
     super( f, s );
   }
-  private ExecutingParser( File f, InputStream s, ExecutingParser p ) throws IOException {
+  protected ExecutingParser( File f, InputStream s, ExecutingParser p ) throws IOException {
     super( f, s, p );
   }
 
@@ -86,14 +86,18 @@ public class ExecutingParser extends CircuitParser<Variable> {
       context().putVar( dummyVar );
     }
   }
+
+  protected ExecutingParser child( File f ) throws FileNotFoundException, IOException {
+    FileInputStream io = new FileInputStream(f);    
+    return new ExecutingParser( f, io, this );
+  }
   
   protected void include( File fname, Map<String,Variable> inMap, Map<String,String> outMap )
     throws CircuitDescriptionException, FileNotFoundException, IOException{
-    FileInputStream io = new FileInputStream(fname);
-    ExecutingParser p = new ExecutingParser( fname, io, this );
+
+    ExecutingParser p = child( fname );
     p.read();
     Variable_Context includeCon = p.context();
-    io.close();
     
     if( !inMap.keySet().containsAll( includeCon.getInputs() ) ){
       String error = "The following input variables were not defined in the included file "+fname+": ";

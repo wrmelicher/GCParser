@@ -11,8 +11,9 @@ public class TruncOperation extends OpDirections {
   public State execute(State[] inputs) throws Exception {
     BigInteger endB = State.toBigInteger( inputs[1] );
     int end = endB.intValue();
-
-    return State.extractState( inputs[0], 0, end );
+    State out = State.extractState( inputs[0], 0, end );
+    reusedWires(out);
+    return out;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length != 2 )

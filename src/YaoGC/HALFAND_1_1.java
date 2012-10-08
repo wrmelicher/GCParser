@@ -35,7 +35,7 @@ public abstract class HALFAND_1_1 extends Circuit {
     }
 
     protected void createOutputWires() {
-	outputWires[0] = new Wire();
+	outputWires[0] = Wire.newWire();
     }
 
     protected void compute() {

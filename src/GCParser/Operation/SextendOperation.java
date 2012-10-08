@@ -11,8 +11,9 @@ public class SextendOperation extends OpDirections {
   public State execute(State[] inputs) throws Exception {
     BigInteger toBits = State.toBigInteger( inputs[1] );
     int to = toBits.intValue();
-
-    return State.signExtend( inputs[0], to );
+    State out = State.signExtend( inputs[0], to );
+    reusedWires(out);
+    return out;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length != 2 )

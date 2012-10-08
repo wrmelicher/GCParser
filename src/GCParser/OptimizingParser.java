@@ -6,6 +6,8 @@ import java.math.BigInteger;
 import GCParser.Operation.OpDirections;
 import GCParser.Operation.CircuitDescriptionException;
 
+import org.sat4j.tools.*;
+
 public class OptimizingParser extends CircuitParser<VariableInfo> {
 
   private PrintStream otherComp;
@@ -50,6 +52,10 @@ public class OptimizingParser extends CircuitParser<VariableInfo> {
       out.write( bs.toByteArray() );
     }
     out.close();
+  }
+
+  public void optimizeVar( VariableInfo v ){
+    //GateTranslator gt = new GateTranslator();
   }
 
   private void print( VariableInfo v ){

@@ -12,6 +12,10 @@ public class State {
 	public BigInteger lbl = null;
 	public boolean invd = false;
 
+      // used for dumping circuit;
+      public long printLabel = SimpleCircuit_2_1.printer == null ? 0 : SimpleCircuit_2_1.printer.newWire();
+      public int num_pointers = 1;
+
 	StaticWire() {}
 
 	public StaticWire(int v) {
@@ -91,6 +95,8 @@ public class State {
 	    swires[i].value = ws[i].value;
 	    swires[i].lbl   = ws[i].lbl;
 	    swires[i].invd  = ws[i].invd;
+	    if( SimpleCircuit_2_1.printer != null )
+	      swires[i].printLabel = ((PrintWire)ws[i]).label();
 	}
 
 	return new State(swires);

@@ -16,6 +16,7 @@ public abstract class OpDirections {
   public String getOp_name(){
     return op_name;
   }
+
   public abstract State execute(State[] operands) throws Exception;
 
   // returns the number of bits this operation will output, or throws an exception
@@ -23,6 +24,11 @@ public abstract class OpDirections {
   public int validate( Variable[] operands, Variable caller ) throws CircuitDescriptionException {
     currentVar = caller;
     return validate( operands );
+  }
+  public void reusedWires( State s ){
+    for( int i = 0; i < s.wires.length; i++ ){
+      s.wires[i].num_pointers++;
+    }
   }
   public CircuitDescriptionException createException(String mess){
     return new CircuitDescriptionException( mess, currentVar.getLineNum() );

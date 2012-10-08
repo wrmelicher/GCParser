@@ -13,6 +13,7 @@ public class ShiftLeftOperation extends OpDirections {
     State zero = new State
       (BigInteger.ZERO,
        State.toBigInteger(inputs[1]).intValue() );
+    reusedWires( inputs[0] );
     return State.concatenate( inputs[0], zero );
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {

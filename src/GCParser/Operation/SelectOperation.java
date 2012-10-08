@@ -14,8 +14,9 @@ public class SelectOperation extends OpDirections {
     BigInteger endB = State.toBigInteger( inputs[2] );
     int start = startB.intValue();
     int end = endB.intValue();
-
-    return State.extractState( inputs[0], start, end );
+    State out = State.extractState( inputs[0], start, end );
+    reusedWires(out);
+    return out;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if( operands.length != 3 )
@@ -28,7 +29,7 @@ public class SelectOperation extends OpDirections {
     int start = ( (Constant_Variable)operands[1] ).getValue().intValue();
     if( start >= end )
       throw createException
-	( getOp_name()+": start bit cannot be greater than end bit" );
+	( getOp_name()+": start bit cannot be greater than or equal to end bit" );
     if( var < end )
       throw createException
 	( getOp_name()+": end bit cannot be greater than bit width of "+var);

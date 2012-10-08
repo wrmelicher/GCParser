@@ -22,11 +22,11 @@ PARSER_BEGIN( CircuitParser )
     private Map<String, T> var_map;
     private Set<File> ancestorIncludes = new TreeSet<File>();
 
-    protected CircuitParser( File readFrom, InputStream io ) {
+    protected CircuitParser( File readFrom, InputStream io ){
       this( io );
       file = readFrom;
-
     }
+
     protected CircuitParser( File readFrom, InputStream io, CircuitParser p ) throws IOException {
       this( readFrom, io );
       partyComp = p.partyComp;
@@ -41,6 +41,10 @@ PARSER_BEGIN( CircuitParser )
 
     protected int partyComp(){
       return partyComp;
+    }
+
+    protected void setPartyComp( int i ){
+      partyComp = i;
     }
 
     public void parse() throws CircuitDescriptionException {
@@ -319,7 +323,7 @@ void RemoveVar() throws CircuitDescriptionException:
 
 void PartyChange() throws CircuitDescriptionException:
 {
-  int party;
+  int party = partyComp;
   if( included ){
     throw new CircuitDescriptionException("Cannot change evaluating party inside included file", lineNumber );
   }
@@ -334,17 +338,17 @@ void PartyChange() throws CircuitDescriptionException:
       if( party != Input_Variable.CLIENT && party != Input_Variable.SERVER ){
 	throw new CircuitDescriptionException("Cannot recognize party "+party, lineNumber );
       }
-      partyComp = party;
+      setPartyComp( party );
     }
   ) |
   ( <END_PARTY>
-    party = IntDigits()
+    ( party = IntDigits() )?
     {
       if( included && partyComp != Input_Variable.ALL )
 	throw new CircuitDescriptionException("Cannot end local computation block in an included file which is inside a local computation block",lineNumber);
       if( party != partyComp )
 	throw new CircuitDescriptionException("Cannot end local computation block when you are not in a local computation block");
-      partyComp = Input_Variable.ALL;
+      setPartyComp( Input_Variable.ALL );
     }
   )
 }

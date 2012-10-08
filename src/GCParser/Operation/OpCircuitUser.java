@@ -57,7 +57,7 @@ public abstract class OpCircuitUser extends OpDirections {
   public State execute(State[] operands) throws Exception {
     int id = circuit_id( operands );
     Circuit res = cached_circuits.get( id );
-    if( res == null ){
+    if( res == null || SimpleCircuit_2_1.printer != null ){
       res = create_circuit( operands );
       res.build();
       cached_circuits.put( id, res );
@@ -70,7 +70,7 @@ public abstract class OpCircuitUser extends OpDirections {
     }
     
     State ans = execute( operands, res );
-    
+
     if( profile_count ){
       get_cir_num( end );
       long[] counter = local_eval ? local_cir_executed : cir_executed;

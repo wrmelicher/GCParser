@@ -20,11 +20,19 @@ public class Wire extends TransitiveObservable {
     public BigInteger lbl;
     public boolean invd = false;
 
-    public Wire() {
+    protected Wire() {
 	serialNum = K++;
 	lbl = new BigInteger(labelBitLength, rnd);
 	// lbl = lbl.clearBit(0);
     }
+
+  public static Wire newWire(){
+    if( SimpleCircuit_2_1.printer == null ){
+      return new Wire();
+    } else {
+      return new PrintWire();
+    }
+  }
 
     public void reset() {
 	lbl = new BigInteger(labelBitLength, rnd);
@@ -71,6 +79,12 @@ public class Wire extends TransitiveObservable {
     public void fixWire(int v) {
 	this.value = v;
 	
+	if( SimpleCircuit_2_1.printer != null ){
+	  ((PrintWire)this).setPrintLabel( v == 1 ?
+					   SimpleCircuit_2_1.printer.high() :
+					   SimpleCircuit_2_1.printer.low() );
+	}
+
 	for (int i = 0; i < this.observers.size(); i++) {
 	    Circuit c = (Circuit) this.observers.get(i);
 	    c.inDegree--;

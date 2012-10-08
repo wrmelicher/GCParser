@@ -10,10 +10,12 @@ public class ShiftRightOperation extends OpDirections {
     super(NAME);
   }
   public State execute( State[] inputs ) throws Exception {
-    return State.extractState
+    State out = State.extractState
       ( inputs[0],
 	State.toBigInteger(inputs[1]).intValue(),
 	inputs[0].getWidth() );
+    reusedWires(out);
+    return out;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
     if(operands.length != 2){

@@ -16,6 +16,7 @@ public class ConcatlsOperation extends OpDirections {
     for( int i = 1; i < inputs.length; i++ ){
       ans = State.concatenate( inputs[i], ans );
     }
+    reusedWires(ans);
     return ans;
   }
   public int validate( Variable[] operands ) throws CircuitDescriptionException {
