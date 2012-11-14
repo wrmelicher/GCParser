@@ -1,3 +1,0 @@
-bin.includes = src/main/resources/META-INF/,\
-               lib/commons-cli.jar,\
-               plugin.properties
