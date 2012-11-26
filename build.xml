@@ -23,8 +23,6 @@
       <classpath>
         <pathelement location="extlibs/jargs.jar"/>
         <pathelement location="extlibs/commons-io-1.4.jar"/>
-	<pathelement location="extlibs/2_0_5/dist/CUSTOM/org.sat4j.pb.jar"/>
-	<pathelement location="extlibs/2_0_5/dist/CUSTOM/org.sat4j.core.jar"/>
         <pathelement path="build/classes"/>
       </classpath>
     </javac>

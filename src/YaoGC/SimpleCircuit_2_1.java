@@ -55,6 +55,8 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
 	return;
       }
 
+
+
 	if (inWireL.value != Wire.UNKNOWN_SIG && inWireR.value != Wire.UNKNOWN_SIG) {
 	    compute();
 	}
@@ -87,7 +89,6 @@ public abstract class SimpleCircuit_2_1 extends Circuit {
 		execYao();
 		if( profile_count )
 		  counter();
-
 	    }
 	}
 	
