@@ -29,8 +29,21 @@ public class SmtOutput extends CircuitParser<Variable> {
     fis.close();
   }
   
-    protected Variable computedVariable( String name, OpDirections op, List<Variable> args ) throws CircuitDescriptionException{
+  protected void header(){
+    out.println("(set-option :produce-models true)\
+(set-info :smt-lib-version 2.0)					\
+(define-fun if ((cond Bool) (a Int) (b Int) (ans Int)) Bool\
+ (and (or (not cond) (= ans a)) (or cond (= ans b))))");
+  }
+
+  protected void footer(){
+    out.println("(check-sat)\
+(exit)");
+  }
+
+  protected Variable computedVariable( String name, OpDirections op, List<Variable> args ) throws CircuitDescriptionException{
     Variable ans = new Computed_Variable( name, partyComp(), lineNumber(), args.toArray( new Variable[0] ), op );
+    
     return ans;
   }
   
