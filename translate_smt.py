@@ -1,17 +1,25 @@
 import sys
 import re
-import popen2
+import subprocess
 
 file = open( sys.argv[1], 'r' )
+log_file = open( "translate_smt.log", 'w' )
+
+smt_cmd = "/home/william/Documents/garbled/mathsat-5.2.1-linux-x86/bin/mathsat"
+smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 vars = {}
-int_re = re.compile("^-?([0-9])+:([0-9])+$")
+int_re = re.compile("^-?([0-9])+(:([0-9])+)?$")
 find_ranges = {}
+
+def smt_proc_write( val ):
+    log_file.write(val)
+    smt_proc.stdin.write(val)
 
 def introduce_var(name,rng):
     global vars
     vars[name] = rng
-    print "(declare-fun "+name+" () Int)"
+    smt_proc_write("(declare-fun "+name+" () Int)\n")
 
 def arg_to_smt(arg):
     match = int_re.match(arg)
@@ -20,7 +28,7 @@ def arg_to_smt(arg):
     return ( int(match.group(1)), int(match.group(2)) )
 
 def assert_smt(statement):
-    return "(assert "+statement+")"
+    return "(assert "+statement+")\n"
 
 def assign_smt(statement,out):
     return "(= "+out+" "+statement+")"
@@ -89,12 +97,14 @@ def map_il_to_smt(op,args,out):
     elif op in special:
         op_clause = special[op](args)
     introduce_var(out, op_clause[1] )
+    if op == "chose":
+        find_ranges[out] = op_clause[1]
     assign_clause = op_clause[0]
     if op in one_bit_ops:
         assign_clause = "(ite "+assign_clause+" 1 0)"
     assign_clause = assign_smt(assign_clause,out)
     assert_clause = assert_smt(assign_clause)
-    print assert_clause
+    smt_proc_write( assert_clause ) 
 
 def assert_between(name, lower, upper):
     return assert_smt( "(and (>= "+name+" "+lower+") (< "+name+" "+upper+"))" )
@@ -104,15 +114,16 @@ def map_dot_to_smt(dot_op, args):
     if dot_op == ".input":
         bit_width = int(args[2])
         introduce_var(args[0], 2**bit_width )
-        print assert_between(args[0],str(0),str(2**bit_width))
+        smt_proc_write( assert_between(args[0],str(0),str(2**bit_width)) )
     if dot_op == ".remove":
         vars.pop( args[1] )
 
 def header():
-    return """(set-option)
-(set-info :smt-lib-version 2.0)"""
+    return """(set-option :global-decls true)
+(set-info :smt-lib-version 2.0)
+"""
 
-print header()
+smt_proc_write( header() )
 for line in file.xreadlines():
     args = line.split()
     if len(args) == 0:
@@ -121,16 +132,34 @@ for line in file.xreadlines():
         map_dot_to_smt( args[0], args[1:] )
     else:
         map_il_to_smt( args[1], args[2:], args[0] )
-print "(exit)"
 
-# def make_guess(arg,lessthan):
-#     print assert_smt("(>= "+arg+" "+lessthan+")")
-#     print "(check-sat)"
-#     line = sys.stdin.readline()
-#     if line == "sat":
-#         print "(pop 1)"
-#         return False
-#     else:
-#         print "(pop 1)"
-#         return True
+def make_guess(arg,lessthan):
+    smt_proc_write( "(push 1)" )
+    smt_proc_write( assert_smt("(>= "+arg+" "+str(lessthan)+")") )
+    smt_proc_write("(check-sat)\n")
+    line = smt_proc.stdout.readline().strip()
+    log_file.write( "-> "+line+"\n" )
+    if line == "sat":
+        smt_proc_write( "(pop 1)\n" ) 
+        return False
+    elif line == "" or line == "unsat":
+        return True
+    else:
+        raise Exception("SMT lib exception: "+line)
 
+def search_range(var,end):
+    start = 0
+    max_val = end
+    while max_val > start and not make_guess(var,2**start):
+        start = start + 1
+    return start
+
+for i in find_ranges:
+    rng = search_range( i, find_ranges[i] )
+    log_file.write( i +" "+str( rng )+"\n" )
+
+smt_proc_write( "(exit)\n" )
+
+smt_proc.wait()
+
+log_file.close()
