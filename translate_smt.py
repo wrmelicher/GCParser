@@ -53,16 +53,36 @@ same_len_ops = {
    "and" : "bvand",
    "or" : "bvor",
    "xor" : "bvxor" }
+
 one_bit_ops = {
-    "ltes" : "<=", 
-    "lteu" : "<=",
-    "gtes" : ">=", 
-    "gteu" : ">=", 
-    "lts" : "<",   
-    "ltu" : "<",
-    "gts" : ">",   
-    "gtu" : ">" }
+    "ltes" : (True, True, True),
+    "lteu" : (False, True, True),
+    "gtes" : (True, False, True), 
+    "gteu" : (False, False, True), 
+    "lts" : (True, True, False),
+    "ltu" : (False, True, False),
+    "gts" : (True, False, False),   
+    "gtu" : (False, False, False) }
+
 ops_set = same_len_ops.viewkeys() | one_bit_ops.viewkeys()
+
+def comparison(a, b, is_signed, is_lt, is_eq):
+    ret = "(bvult "
+    arga = arg_to_smt(a)
+    argb = arg_to_smt(b)
+    if is_lt:
+        if is_eq:
+            ret += argb[0] + " " + arga[0] + ")"
+            ret = "(not "+ret+")"
+        else:
+            ret += arga[0] + " " + argb[0] + ")"
+    else:
+        if is_eq:
+            ret += argb[0] + " " + arga[0] + ")"
+        else:
+            ret += arga[0] + " " + argb[0] + ")"
+            ret = "(not "+ret+")"
+    return ret
 
 def map_ops(op, args):
     retval = "("
@@ -70,8 +90,13 @@ def map_ops(op, args):
     if op in same_len_ops:
         retval += same_len_ops[op]
     else:
-        retval += one_bit_ops[op]
+        compvals = one_bit_ops[op]
+        retval = comparison( args[0], args[1],
+                             compvals[0],
+                             compvals[1],
+                             compvals[2] )
         arg_size = 1
+        return ( retval, arg_size )
     for i in xrange(len(args)):
         vals = arg_to_smt(args[i])
         vals_bv_form = vals[0]
@@ -157,20 +182,20 @@ def map_il_to_smt(op,args,out):
         find_ranges[out] = op_clause[1]
     assign_clause = op_clause[0]
     if op in one_bit_ops:
-        assign_clause = "(ite "+assign_clause+" 1 0)"
+        assign_clause = "(ite "+assign_clause+" #b1 #b0)"
     assign_clause = assign_smt(assign_clause,out)
     assert_clause = assert_smt(assign_clause)
     smt_proc_write( assert_clause ) 
 
 def assert_less(name, upper):
-    return assert_smt( "(ult "+name+" "+upper+")" )
+    return assert_smt( "(ult "+name+" "+const_bv_literal(upper,vars[name])+")" )
 
 def map_dot_to_smt(dot_op, args):
     global vars
     if dot_op == ".input":
         bit_width = int(args[2])
         introduce_var(args[0], bit_width )
-        smt_proc_write( assert_between(args[0],str(0),str(bit_width)) )
+        # smt_proc_write( assert_less(args[0],2**bit_width) )
     if dot_op == ".remove":
         vars.pop( args[1] )
 
@@ -182,8 +207,8 @@ def header():
 
 
 def make_guess(arg,lessthan):
-    smt_proc_write( "(push 1)" )
-    smt_proc_write( assert_smt("(>= "+arg+" "+str(lessthan)+")") )
+    smt_proc_write( "(push 1)\n" )
+    smt_proc_write( assert_smt("(bvult "+str(lessthan)+" "+arg+")") )
     smt_proc_write("(check-sat)\n")
     line = smt_proc.stdout.readline().strip()
     log_file.write( "-> "+line+"\n" )
