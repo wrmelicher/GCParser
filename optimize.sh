@@ -12,4 +12,3 @@ then
 else
     mv $TEMPFILE $OUTFILE
 fi
-#rm $TEMPFILE
