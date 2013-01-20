@@ -132,10 +132,7 @@ def sp_shiftr(args):
     state = "(bvshr "+arg2val[0]+" "+const_bv_literal(arg1val[0],arg1val[1])+")"
     return (state, arg2val[1] - arg1val[0] )
 
-# bits_special = {
-#             "concatls" : sp_concatls, 
-#             "decode" : sp_decode, 
-
+#TODO: must support decode operation
 def sp_concatls(args):
     first = arg_to_smt(args[0])
     ret = first[0]
