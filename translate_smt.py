@@ -1,11 +1,11 @@
 import sys
 import re
 import subprocess
-
+import os
 
 log_file = open( "translate_smt.log", 'w' )
 
-smt_cmd = "/home/william/Documents/garbled/mathsat-5.2.1-linux-x86/bin/mathsat"
+smt_cmd = os.getenv("SMT_LOCATION")
 smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 vars = {}
@@ -136,12 +136,15 @@ def sp_shiftr(args):
 #             "concatls" : sp_concatls, 
 #             "decode" : sp_decode, 
 
-def sp_decode( args ):
-    # number and enable
-    arg1 = arg_to_smt( args[0] )
-    enable = arg_to_smt( args[1] )
-    zeros = const_bv_literal( 0, 2**arg1[1] )
-    return ( "(ite (= "+enable[0]+" #b1) "+
+def sp_concatls(args):
+    first = arg_to_smt(args[0])
+    ret = first[0]
+    bit_size_accum = first[1]
+    for i in xrange(1, len(args) ):
+        val = arg_to_smt( args[i] )
+        ret = "(concat "+ret+" "+val[0]+")"
+        bit_size_accum += val[1]
+    return ( ret, bit_size_accum )
 
 def sp_concat(args):
     ret = ""
@@ -180,7 +183,8 @@ special = { "shiftl" : sp_shiftl,
             "select" : sp_select,
             "sextend" : sp_sextend,
             "trunc" : lambda arg: sp_sextend( [ arg[0], "0:1" ] ),
-            "zextend" : sp_sextend }
+            "zextend" : sp_sextend,
+            "concatls" : sp_concatls }
 
 def map_il_to_smt(op,args,out):
     if op in same_len_ops:
