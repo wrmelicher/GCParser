@@ -5,10 +5,14 @@ import os
 
 log_file = open( "translate_smt.log", 'w' )
 
-smt_cmd = os.getenv("SMT_LOCATION")
+smt_cmd = os.getenv("SMT_LOCATION") # find external smt solver
+
+# open sub process to smt solver
 smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
+# variable information
 vars = {}
+# reg exp for constant arguments
 int_re = re.compile("^-?([0-9]+)(:([0-9]+))?$")
 find_ranges = {}
 
@@ -69,7 +73,6 @@ def const_arg_to_smt( arg ):
     if size == None:
         size = len(bin(mag))-2
     return mag
-#    return ( mag, int(size) )
 
 def assert_smt(statement):
     return "(assert "+statement+")\n"
@@ -244,6 +247,7 @@ def make_guess(arg,lessthan):
 
 def search_range(var,end):
     # TODO: experiment with this search. try binary search
+    # for now just a simple linear search
     start = 0
     max_val = end
     while max_val > start and not make_guess(var,2**start):
