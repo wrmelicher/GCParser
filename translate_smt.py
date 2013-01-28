@@ -5,7 +5,7 @@ import os
 
 log_file = open( "translate_smt.log", 'w' )
 
-smt_cmd = os.getenv("SMT_LOCATION") # find external smt solver
+smt_cmd = os.getenv( "SMT_LOCATION" ) # find external smt solver
 
 # open sub process to smt solver
 smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -47,6 +47,9 @@ def introduce_var(name,rng):
     global vars
     vars[name] = rng
     smt_proc_write("(declare-fun "+name+" () (_ BitVec "+str(rng)+"))\n")
+
+def write_output(val):
+    print val
 
 def const_to_bv( match ):
     mag = int(match.group(1))
@@ -120,7 +123,7 @@ def map_ops(op, args):
         vals = arg_to_smt(args[i])
         vals_bv_form = vals[0]
         if i == 0 and op == "chose":
-            retval += " (= "+vals_bv_form+" #b1)"
+            retval += " (= "+vals_bv_form+" #b0)"
         elif i == 1 and op == "sub":
             retval += " (bvneg "+vals_bv_form+")"
         else:
@@ -207,14 +210,16 @@ def map_il_to_smt(op,args,out):
         log_file.write("Error: unknown function "+op+"\n")
         raise Exception("unknown function "+op)
     introduce_var(out, op_clause[1] )
-    if op == "chose":
-        find_ranges[out] = op_clause[1]
     assign_clause = op_clause[0]
     if op in one_bit_ops:
         assign_clause = "(ite "+assign_clause+" #b1 #b0)"
     assign_clause = assign_smt(assign_clause,out)
     assert_clause = assert_smt(assign_clause)
-    smt_proc_write( assert_clause ) 
+    smt_proc_write( assert_clause )
+    if op == "chose":
+        rng = search_range( out, op_clause[1] )
+        if rng < op_clause[1]:
+            log_file.write( out+" "+str( rng )+"\n" )
 
 def map_dot_to_smt(dot_op, args):
     global vars
@@ -224,23 +229,24 @@ def map_dot_to_smt(dot_op, args):
     # if dot_op == ".remove":
     #     del vars[args[0]]
 
+
+# (set-logic QF_BV)
 def header():
     return """(set-option :global-decls true)
 (set-info :smt-lib-version 2.0)
-(set-logic QF_BV)
 """
 
 def make_guess(arg,lessthan):
     smt_proc_write( "(push 1)\n" )
-    smt_proc_write( assert_smt("(not (bvult "+arg+" "+const_bv_literal(lessthan,vars[arg])+"))") )
+    smt_proc_write( assert_smt("(not (bvult "+arg+" "+const_bv_literal(2**lessthan,vars[arg])+"))") )
     smt_proc_write("(check-sat)\n")
     line = smt_proc.stdout.readline().strip()
     log_file.write( "-> "+line+"\n" )
     if line == "sat":
-        smt_proc_write( "(pop 1)\n" ) 
+        smt_proc_write( "(pop 1)\n" )
         return False
     elif line == "" or line == "unsat":
-        print arg
+        smt_proc_write( "(pop 1)\n" )
         return True
     else:
         raise Exception("SMT lib exception: "+line)
@@ -248,14 +254,26 @@ def make_guess(arg,lessthan):
 def search_range(var,end):
     # TODO: experiment with this search. try binary search
     # for now just a simple linear search
-    start = 0
-    max_val = end
-    while max_val > start and not make_guess(var,2**start):
-        start = start + 1
-    return start
+    imin = 0
+    imax = end
+    # max_val = end
+    # while max_val > start and not make_guess(var,2**start):
+    #     start = start + 1
+    # return start
+    while imin < imax:
+        imid = (imax+imin)/2
+        if not make_guess( var, imid ):
+            imin = imid + 1
+        else:
+            imax = imid
+    return imin
 
 if __name__=="__main__":
     smt_proc_write( header() )
+    if len(sys.argv) < 2:
+        print "Error"
+        print "Usage: "
+        print "translate_smt.py [Input File]"
     file = open( sys.argv[1], 'r' )
     for line in file.xreadlines():
         args = line.split()
@@ -265,10 +283,6 @@ if __name__=="__main__":
             map_dot_to_smt( args[0], args[1:] )
         else:
             map_il_to_smt( args[1], args[2:], args[0] )
-    for i in find_ranges:
-        rng = search_range( i, find_ranges[i] )
-        log_file.write( i +" "+str( rng )+"\n" )
-        
     smt_proc_write( "(exit)\n" )
     smt_proc.wait()
     log_file.close()
