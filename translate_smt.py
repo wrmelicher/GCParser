@@ -64,17 +64,16 @@ def arg_to_smt(arg):
         return (arg,vars[arg])
     return const_to_bv( match )
 
-def const_bv_literal( num, size ):
+def const_bv_literal( num, size = -1 ):
     raw = bin(num)[2:]
+    if size == -1:
+        size = len(raw)
     raw = ( "0"*(size-len(raw) ) ) + raw
     return "#b"+raw
 
 def const_arg_to_smt( arg ):
     match = int_re.match(arg)
     mag = int( match.group(1) )
-    size = match.group(3)
-    if size == None:
-        size = len(bin(mag))-2
     return mag
 
 def assert_smt(statement):
@@ -137,16 +136,17 @@ def sp_shiftl(args):
     if arg1val == None:
         raise Error("shiftl must shift by constant amount")
     arg2val = arg_to_smt(args[0])
-    state = "(bvshl "+arg2val[0]+" "+const_bv_literal(arg1val,arg1val[1])+")"
-    return (state, arg1val[0] + arg2val[1] )
+    zeros = "0"*arg1val
+    state = "(bvshl (concat #b"+zeros+" "+str(arg2val[0])+") "+const_bv_literal(arg1val,arg2val[1]+arg1val)+")"
+    return (state, arg1val + arg2val[1])
 
 def sp_shiftr(args):
     arg1val = const_arg_to_smt(args[1])
     if arg1val == None:
         raise Error("shiftr must shift by constant amount")
     arg2val = arg_to_smt(args[0])
-    state = "(bvshr "+arg2val[0]+" "+const_bv_literal(arg1val,arg1val[1])+")"
-    return (state, arg2val[1] - arg1val[0] )
+    state = "((_ extract "+str(arg2val[1]-arg1val-1)+" 0) (bvlshr "+str(arg2val[0])+" "+const_bv_literal(arg1val,arg2val[1])+"))"
+    return (state, arg2val[1] - arg1val)
 
 #TODO: must support decode operation
 def sp_concatls(args):
@@ -252,14 +252,8 @@ def make_guess(arg,lessthan):
         raise Exception("SMT lib exception: "+line)
 
 def search_range(var,end):
-    # TODO: experiment with this search. try binary search
-    # for now just a simple linear search
     imin = 0
     imax = end
-    # max_val = end
-    # while max_val > start and not make_guess(var,2**start):
-    #     start = start + 1
-    # return start
     while imin < imax:
         imid = (imax+imin)/2
         if not make_guess( var, imid ):
