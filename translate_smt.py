@@ -212,8 +212,19 @@ def prev_arg_size(arg):
     else:
         return arg_to_smt(arg)[1]
 
+counter = 0
+    
+def temp_var(arg):
+    global counter
+    if int_re.match(arg) != None:
+        return arg+"_t"
+    else:
+        counter += 1
+        return "t_t_"+str(counter)
+    
 def out_file_bit_align(arg,size):
     prev_size = prev_arg_size(arg)
+    temp_var 
     if prev_size < size:
         out_file.write(arg+"_t sextend "+arg+" "+str(size)+"\n")
         return arg+"_t"
@@ -224,7 +235,7 @@ def out_file_bit_align(arg,size):
 
 def out_file_operation(op, args, out):
     if op in special:
-        out_file.write(" ".join([out,op]+args))
+        out_file.write(" ".join([out,op]+args)+"\n")
         new_vars[out] = sum( map(prev_arg_size, args) )
     else:
         if op in same_len_ops:
@@ -232,7 +243,7 @@ def out_file_operation(op, args, out):
         elif op in one_bit_ops:
             size = max( map( prev_arg_size, args) )
         args_actual = map( lambda x: out_file_bit_align(x,size), args )
-        out_file.write( " ".join( [out,op] + args_actual ) )
+        out_file.write( " ".join( [out,op] + args_actual ) +"\n")
         new_vars[out] = size
 
 def map_il_to_smt(op,args,out):
