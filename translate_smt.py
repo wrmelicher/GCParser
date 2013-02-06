@@ -2,8 +2,15 @@ import sys
 import re
 import subprocess
 import os
+import os.path
 
-log_file = open( "translate_smt.log", 'w' )
+if __name__=="__main__":
+    if len(sys.argv) < 2:
+        print "Error"
+        print "Usage: "
+        print "translate_smt.py [Input File]"
+    out_file = open( os.path.splitext( sys.argv[1] )[0]+".smt", 'w' )
+    log_file = open( "translate_smt.log", 'w' )
 
 smt_cmd = os.getenv( "SMT_LOCATION" ) # find external smt solver
 
@@ -12,9 +19,9 @@ smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.
 
 # variable information
 vars = {}
+new_vars = {}
 # reg exp for constant arguments
 int_re = re.compile("^-?([0-9]+)(:([0-9]+))?$")
-find_ranges = {}
 
 same_len_ops = {
    "add" : "bvadd",    
@@ -128,7 +135,7 @@ def map_ops(op, args):
         else:
             retval += " "+vals_bv_form
         if op in same_len_ops:
-            arg_size = vals[1]
+            arg_size = max(vals[1],arg_size)
     return ( retval + ")", arg_size )
 
 def sp_shiftl(args):
@@ -199,7 +206,37 @@ special = { "shiftl" : sp_shiftl,
             "zextend" : sp_sextend,
             "concatls" : sp_concatls }
 
+def prev_arg_size(arg):
+    if arg in new_vars:
+        return new_vars[arg]
+    else:
+        return arg_to_smt(arg)[1]
+
+def out_file_bit_align(arg,size):
+    prev_size = prev_arg_size(arg)
+    if prev_size < size:
+        out_file.write(arg+"_t sextend "+arg+" "+str(size)+"\n")
+        return arg+"_t"
+    elif prev_size > size:
+        out_file.write(arg+"_t trunc "+arg+" "+str(size)+"\n")
+        return arg+"_t"
+    return arg
+
+def out_file_operation(op, args, out):
+    if op in special:
+        out_file.write(" ".join([out,op]+args))
+        new_vars[out] = sum( map(prev_arg_size, args) )
+    else:
+        if op in same_len_ops:
+            size = vars[out]
+        elif op in one_bit_ops:
+            size = max( map( prev_arg_size, args) )
+        args_actual = map( lambda x: out_file_bit_align(x,size), args )
+        out_file.write( " ".join( [out,op] + args_actual ) )
+        new_vars[out] = size
+
 def map_il_to_smt(op,args,out):
+    global vars
     if op in same_len_ops:
         op_clause = map_ops(op,args)
     elif op in one_bit_ops:
@@ -220,12 +257,19 @@ def map_il_to_smt(op,args,out):
         rng = search_range( out, op_clause[1] )
         if rng < op_clause[1]:
             log_file.write( out+" "+str( rng )+"\n" )
+        new_vars[out] = rng
+        args_then_else = map(lambda x: out_file_bit_align(x,rng),
+                             args[1:])
+        out_file.write( " ".join( [out,op] + args_then_else ) + "\n" )
+    else:
+        out_file_operation(op, args, out)
 
 def map_dot_to_smt(dot_op, args):
     global vars
     if dot_op == ".input":
         bit_width = int(args[2])
         introduce_var(args[0], bit_width )
+    out_file.write( dot_op + " " + ( " ".join(args) ) + "\n" )
     # if dot_op == ".remove":
     #     del vars[args[0]]
 
@@ -264,10 +308,6 @@ def search_range(var,end):
 
 if __name__=="__main__":
     smt_proc_write( header() )
-    if len(sys.argv) < 2:
-        print "Error"
-        print "Usage: "
-        print "translate_smt.py [Input File]"
     file = open( sys.argv[1], 'r' )
     for line in file.xreadlines():
         args = line.split()
