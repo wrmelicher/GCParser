@@ -4,14 +4,6 @@ import subprocess
 import os
 import os.path
 
-if __name__=="__main__":
-    if len(sys.argv) < 2:
-        print "Error"
-        print "Usage: "
-        print "translate_smt.py [Input File]"
-    out_file = open( os.path.splitext( sys.argv[1] )[0]+".smt", 'w' )
-    log_file = open( "translate_smt.log", 'w' )
-
 smt_cmd = os.getenv( "SMT_LOCATION" ) # find external smt solver
 
 # open sub process to smt solver
@@ -216,21 +208,21 @@ counter = 0
     
 def temp_var(arg):
     global counter
-    if int_re.match(arg) != None:
-        return arg+"_t"
+    counter += 1
+    if int_re.match(arg) == None:
+        return arg+"_t"+str(counter)
     else:
-        counter += 1
         return "t_t_"+str(counter)
     
 def out_file_bit_align(arg,size):
     prev_size = prev_arg_size(arg)
-    temp_var 
+    temp_name = temp_var(arg)
     if prev_size < size:
-        out_file.write(arg+"_t sextend "+arg+" "+str(size)+"\n")
-        return arg+"_t"
+        out_file.write(temp_name+" sextend "+arg+" "+str(size)+"\n")
+        return temp_name
     elif prev_size > size:
-        out_file.write(arg+"_t trunc "+arg+" "+str(size)+"\n")
-        return arg+"_t"
+        out_file.write(temp_name+" trunc "+arg+" "+str(size)+"\n")
+        return temp_name
     return arg
 
 def out_file_operation(op, args, out):
@@ -271,7 +263,7 @@ def map_il_to_smt(op,args,out):
         new_vars[out] = rng
         args_then_else = map(lambda x: out_file_bit_align(x,rng),
                              args[1:])
-        out_file.write( " ".join( [out,op] + args_then_else ) + "\n" )
+        out_file.write( " ".join( [ out, op, args[0] ] + args_then_else ) + "\n" )
     else:
         out_file_operation(op, args, out)
 
@@ -318,6 +310,12 @@ def search_range(var,end):
     return imin
 
 if __name__=="__main__":
+    if len(sys.argv) < 2:
+        print "Error"
+        print "Usage: "
+        print "translate_smt.py [Input File]"
+    out_file = open( os.path.splitext( sys.argv[1] )[0]+".smt", 'w' )
+    log_file = open( "translate_smt.log", 'w' )
     smt_proc_write( header() )
     file = open( sys.argv[1], 'r' )
     for line in file.xreadlines():
