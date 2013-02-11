@@ -50,6 +50,8 @@ public class ChoseOperation extends OpCircuitUser {
     if( lenFirst != lenSecond ){
       throw createException( "Operands 2 and 3 of "+NAME+" operation must have the same length" );
     }
+    if( lenFirst < 1 )
+      throw createException( "Operands must be larger than 0");
     return lenFirst;
   }
 }

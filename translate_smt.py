@@ -213,11 +213,20 @@ def temp_var(arg):
         return arg+"_t"+str(counter)
     else:
         return "t_t_"+str(counter)
-    
+
+def out_file_temp_name(arg,op):
+    if prev_arg_size(arg) == 0:
+        return "0:1"
+    else:
+        return arg
+
 def out_file_bit_align(arg,size):
     prev_size = prev_arg_size(arg)
     temp_name = temp_var(arg)
-    if prev_size < size:
+    if prev_size == 0:
+        out_file.write(temp_name+" sextend 0:1 "+str(size)+"\n")
+        return temp_name
+    elif prev_size < size:
         out_file.write(temp_name+" sextend "+arg+" "+str(size)+"\n")
         return temp_name
     elif prev_size > size:
@@ -227,15 +236,15 @@ def out_file_bit_align(arg,size):
 
 def out_file_operation(op, args, out):
     if op in special:
-        out_file.write(" ".join([out,op]+args)+"\n")
-        new_vars[out] = sum( map(prev_arg_size, args) )
+        out_file.write(" ".join([out,op]+ map(lambda x: out_file_temp_name(x,op), args) )+"\n")
+        new_vars[out] = special[op](args)[1]
     else:
         if op in same_len_ops:
             size = vars[out]
         elif op in one_bit_ops:
             size = max( map( prev_arg_size, args) )
         args_actual = map( lambda x: out_file_bit_align(x,size), args )
-        out_file.write( " ".join( [out,op] + args_actual ) +"\n")
+        out_file.write( " ".join( [out,op] + args_actual ) +"\n" )
         new_vars[out] = size
 
 def map_il_to_smt(op,args,out):
@@ -261,9 +270,10 @@ def map_il_to_smt(op,args,out):
         if rng < op_clause[1]:
             log_file.write( out+" "+str( rng )+"\n" )
         new_vars[out] = rng
-        args_then_else = map(lambda x: out_file_bit_align(x,rng),
-                             args[1:])
-        out_file.write( " ".join( [ out, op, args[0] ] + args_then_else ) + "\n" )
+        if rng != 0:
+            args_then_else = map(lambda x: out_file_bit_align(x,rng),
+                                 args[1:])
+            out_file.write( " ".join( [ out, op, args[0] ] + args_then_else ) + "\n" )
     else:
         out_file_operation(op, args, out)
 
