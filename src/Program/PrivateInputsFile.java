@@ -57,7 +57,7 @@ public class PrivateInputsFile implements PrivateInputProvider {
   }
 
   // each line of the file is in this format
-  //   input_var_name [format] big_integer
+  //   input_var_name format=[format] big_integer
 
   //   format is decimal by default
   //   formats: hex, dec, bin
