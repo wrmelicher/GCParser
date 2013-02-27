@@ -32,6 +32,15 @@ public class PrivateInputsFile implements PrivateInputProvider {
     }
   }
 
+  private static class BinFmt extends BigIntFormat {
+    public BinFmt(){
+      super("bin");
+    }
+    public BigInteger getFrom( String val ){
+      return new BigInteger( val, 2 );
+    }
+  }
+
   private static class HexFmt extends BigIntFormat {
     public HexFmt(){
       super("hex");
@@ -46,6 +55,14 @@ public class PrivateInputsFile implements PrivateInputProvider {
     new HexFmt();
     NORMAL = new NormalFmt();
   }
+
+  // each line of the file is in this format
+  //   input_var_name format=[format] big_integer
+
+  //   format is decimal by default
+  //   formats: hex, dec, bin
+  //   new formats can be added for more than just changing the radix
+  
   public Map<String, BigInteger> privateInputs( Map<String, Input_Variable> requested ){
     if( ans != null )
       return ans;

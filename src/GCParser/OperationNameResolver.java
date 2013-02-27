@@ -45,6 +45,7 @@ public class OperationNameResolver {
     new ShiftLeftOperation();
     new ShiftRightOperation();
     new DecodeOperation();
+    new IteOperation();
   }
   public static State executeFromName( String op_name, State[] operands ) throws Exception {
     return get(op_name).execute(operands);

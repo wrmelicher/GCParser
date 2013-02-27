@@ -21,6 +21,16 @@ public class VariableInfo {
     printOut = print;
     children = new LinkedList<VariableInfo>();
   }
+
+  public boolean equals( Object other ){
+    if( !(other instanceof VariableInfo) ){
+      return false;
+    } else {
+      VariableInfo o = (VariableInfo)other;
+      return o.getName() == getName();
+    }
+  }
+  
   public static VariableInfo computedVariable( String name, OpDirections op, List<VariableInfo> args ){
     int party = Input_Variable.NEUTRAL;
     String line = name+" "+op.getOp_name();

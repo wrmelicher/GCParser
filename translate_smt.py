@@ -6,25 +6,28 @@ import os.path
 
 smt_cmd = os.getenv( "SMT_LOCATION" ) # find external smt solver
 
-# open sub process to smt solver
-smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-
 # variable information
 vars = {}
 new_vars = {}
 # reg exp for constant arguments
 int_re = re.compile("^-?([0-9]+)(:([0-9]+))?$")
 
+# operations whose results are the same size
+# as their operands
 same_len_ops = {
    "add" : "bvadd",    
-   "sub" : "bvadd", 
-   "negate" : "bvneg", 
-   "chose" : "ite",
+   "sub" : "bvadd",
+   "negate" : "bvneg",
+   "chose" : "ite", # exception to above rule
+   "ite" : "ite", # exception to above rule
    "and" : "bvand",
    "or" : "bvor",
    "xor" : "bvxor",
    "not" : "bvnot" }
 
+# operations whose operands are the same size
+# but the result is always one bit wide
+# ( is_signed, is_lt, is_eq_comp, is_equ_fun )
 one_bit_ops = {
     "ltes" : (True, True, True, False),
     "lteu" : (False, True, True, False),
@@ -46,9 +49,6 @@ def introduce_var(name,rng):
     global vars
     vars[name] = rng
     smt_proc_write("(declare-fun "+name+" () (_ BitVec "+str(rng)+"))\n")
-
-def write_output(val):
-    print val
 
 def const_to_bv( match ):
     mag = int(match.group(1))
@@ -120,7 +120,7 @@ def map_ops(op, args):
     for i in xrange(len(args)):
         vals = arg_to_smt(args[i])
         vals_bv_form = vals[0]
-        if i == 0 and op == "chose":
+        if i == 0 and (op == "chose" or op == "ite"):
             retval += " (= "+vals_bv_form+" #b0)"
         elif i == 1 and op == "sub":
             retval += " (bvneg "+vals_bv_form+")"
@@ -147,7 +147,6 @@ def sp_shiftr(args):
     state = "((_ extract "+str(arg2val[1]-arg1val-1)+" 0) (bvlshr "+str(arg2val[0])+" "+const_bv_literal(arg1val,arg2val[1])+"))"
     return (state, arg2val[1] - arg1val)
 
-#TODO: must support decode operation
 def sp_concatls(args):
     first = arg_to_smt(args[0])
     ret = first[0]
@@ -183,20 +182,49 @@ def sp_select(args):
     return ( ret, to_arg - from_arg )
 
 def sp_sextend( args ):
+    to_arg = const_arg_to_smt( args[1] )
+    base_arg = arg_to_smt( args[0] )
+    ret = "(concat (ite (= ((_ extract " + str(base_arg[1]-1) + " "+str(base_arg[1]-1)+") "+base_arg[0]+") #b0) #b"+("0"*(to_arg-base_arg[1]))+" #b"+("1"*(to_arg-base_arg[1]))+") "+base_arg[0]+")"
+    return ( ret, to_arg )
+
+def sp_zextend( args ):
     # TODO: handle signed arguments
     to_arg = const_arg_to_smt( args[1] )
     base_arg = arg_to_smt( args[0] )
     ret = "(concat #b"+("0"*(to_arg-base_arg[1]))+" "+base_arg[0]+")"
     return ( ret, to_arg )
 
-special = { "shiftl" : sp_shiftl,
-            "shiftr" : sp_shiftr,
-            "concat" : sp_concat,
-            "select" : sp_select,
-            "sextend" : sp_sextend,
-            "trunc" : lambda arg: sp_sextend( [ arg[0], "0:1" ] ),
-            "zextend" : sp_sextend,
-            "concatls" : sp_concatls }
+def sp_select_out(args, out):
+    size = prev_arg_size(args[0])
+    from_arg = const_arg_to_smt(args[1])
+    to_arg = const_arg_to_smt(args[2])
+    write = out + " select "
+    if size <= from_arg:
+        out_file.write( out + " set 0:1\n")
+        return 1
+    elif size < to_arg:
+        write += " ".join( args[:2] + [ str(size) ] )
+        out_file.write(write+"\n")
+        return size - from_arg
+    else:
+        write += " ".join( args )
+        out_file.write(write+"\n")
+        return to_arg - from_arg
+
+# operations which require special consideration
+# "operation" : ( smt_translation_fun, output_translation_fun )
+# TODO: must support decode operation
+special = { "shiftl" : (sp_shiftl, None),
+            "shiftr" : (sp_shiftr, None),
+            "concat" : (sp_concat, None),
+            "select" : (sp_select, sp_select_out),
+            "sextend" : (sp_sextend, None),
+            "trunc" : (lambda arg:
+                           sp_select( [ arg[0], "0:1", arg[1] ] ),
+                       lambda arg, out:
+                           sp_select_out( [arg[0], "0:1", arg[1] ], out)),
+            "zextend" : (sp_zextend, None),
+            "concatls" : (sp_concatls, None) }
 
 def prev_arg_size(arg):
     if arg in new_vars:
@@ -213,12 +241,21 @@ def temp_var(arg):
         return arg+"_t"+str(counter)
     else:
         return "t_t_"+str(counter)
-    
+
+def out_file_name(arg):
+    if prev_arg_size(arg) == 0:
+        return "0:1"
+    else:
+        return arg
+
 def out_file_bit_align(arg,size):
     prev_size = prev_arg_size(arg)
     temp_name = temp_var(arg)
-    if prev_size < size:
-        out_file.write(temp_name+" sextend "+arg+" "+str(size)+"\n")
+    if prev_size == 0:
+        out_file.write(temp_name+" zextend 0:1 "+str(size)+"\n")
+        return temp_name
+    elif prev_size < size:
+        out_file.write(temp_name+" zextend "+arg+" "+str(size)+"\n")
         return temp_name
     elif prev_size > size:
         out_file.write(temp_name+" trunc "+arg+" "+str(size)+"\n")
@@ -227,25 +264,33 @@ def out_file_bit_align(arg,size):
 
 def out_file_operation(op, args, out):
     if op in special:
-        out_file.write(" ".join([out,op]+args)+"\n")
-        new_vars[out] = sum( map(prev_arg_size, args) )
+        if special[op][1] == None:
+            out_file.write(" ".join( [out,op] +
+                                     map(lambda x:
+                                             out_file_name(x), args) )+"\n")
+            new_vars[out] = special[op][0](args)[1]
+        else:
+            new_vars[out] = special[op][1](args,out)
     else:
         if op in same_len_ops:
             size = vars[out]
         elif op in one_bit_ops:
             size = max( map( prev_arg_size, args) )
-        args_actual = map( lambda x: out_file_bit_align(x,size), args )
-        out_file.write( " ".join( [out,op] + args_actual ) +"\n")
+        if op == "ite" or op == "chose":
+            args_actual = [out_file_name(args[0])] + map( lambda x: out_file_bit_align(x,size), args[1:] )
+        else:
+            args_actual = map( lambda x: out_file_bit_align(x,size), args )
+        out_file.write( " ".join( [out,op] + args_actual ) +"\n" )
         new_vars[out] = size
 
 def map_il_to_smt(op,args,out):
-    global vars
+    # prepare smt assertions
     if op in same_len_ops:
         op_clause = map_ops(op,args)
     elif op in one_bit_ops:
         op_clause = map_ops(op,args)
     elif op in special:
-        op_clause = special[op](args)
+        op_clause = special[op][0](args)
     else:
         log_file.write("Error: unknown function "+op+"\n")
         raise Exception("unknown function "+op)
@@ -253,25 +298,26 @@ def map_il_to_smt(op,args,out):
     assign_clause = op_clause[0]
     if op in one_bit_ops:
         assign_clause = "(ite "+assign_clause+" #b1 #b0)"
+    # send assertion to smt solver
     assign_clause = assign_smt(assign_clause,out)
     assert_clause = assert_smt(assign_clause)
     smt_proc_write( assert_clause )
-    if op == "chose":
-        rng = search_range( out, op_clause[1] )
-        if rng < op_clause[1]:
-            log_file.write( out+" "+str( rng )+"\n" )
-        new_vars[out] = rng
-        args_then_else = map(lambda x: out_file_bit_align(x,rng),
-                             args[1:])
-        out_file.write( " ".join( [ out, op, args[0] ] + args_then_else ) + "\n" )
-    else:
+    # query smt solver for size of variable
+    rng = search_range( out, op_clause[1] )
+    # write answer to log
+    if rng < op_clause[1]:
+        log_file.write( out + " " + str(rng) + "\n" )
+    new_vars[out] = rng
+    if rng != 0:
+        # write new variable to output file
         out_file_operation(op, args, out)
 
 def map_dot_to_smt(dot_op, args):
-    global vars
     if dot_op == ".input":
         bit_width = int(args[2])
         introduce_var(args[0], bit_width )
+    if dot_op == ".output":
+        args[0] = out_file_name(args[0])
     out_file.write( dot_op + " " + ( " ".join(args) ) + "\n" )
     # if dot_op == ".remove":
     #     del vars[args[0]]
@@ -279,8 +325,7 @@ def map_dot_to_smt(dot_op, args):
 
 # (set-logic QF_BV)
 def header():
-    return """(set-option :global-decls true)
-(set-info :smt-lib-version 2.0)
+    return """(set-info :smt-lib-version 2.0)
 """
 
 def make_guess(arg,lessthan):
@@ -310,6 +355,8 @@ def search_range(var,end):
     return imin
 
 if __name__=="__main__":
+    # open sub process to smt solver
+    smt_proc = subprocess.Popen([smt_cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     if len(sys.argv) < 2:
         print "Error"
         print "Usage: "
@@ -318,14 +365,20 @@ if __name__=="__main__":
     log_file = open( "translate_smt.log", 'w' )
     smt_proc_write( header() )
     file = open( sys.argv[1], 'r' )
+    counter = 0
     for line in file.xreadlines():
+        counter += 1
         args = line.split()
-        if len(args) == 0:
-            continue
-        if args[0][0] == ".":
-            map_dot_to_smt( args[0], args[1:] )
-        else:
-            map_il_to_smt( args[1], args[2:], args[0] )
+        try:
+            if len(args) == 0:
+                continue
+            if args[0][0] == ".":
+                map_dot_to_smt( args[0], args[1:] )
+            else:
+                map_il_to_smt( args[1], args[2:], args[0] )
+        except:
+            print "Error on line "+str(counter)
+            raise
     smt_proc_write( "(exit)\n" )
     smt_proc.wait()
     log_file.close()

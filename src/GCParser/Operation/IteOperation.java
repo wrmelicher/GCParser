@@ -4,8 +4,9 @@ import GCParser.*;
 import YaoGC.*;
 
 /*
-
-  out chose control x y
+  If then else operation
+  
+  out ite control x y
 
   out = x if control == 0
   out = y otherwise
@@ -13,9 +14,9 @@ import YaoGC.*;
  */
 
 
-public class ChoseOperation extends OpCircuitUser {
-  public static final String NAME = "chose";
-  public ChoseOperation() {
+public class IteOperation extends OpCircuitUser {
+  public static final String NAME = "ite";
+  public IteOperation() {
     super( NAME );
   }
   public Circuit create_circuit( State[] operands ){
