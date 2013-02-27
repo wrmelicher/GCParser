@@ -25,20 +25,6 @@ same_len_ops = {
    "xor" : "bvxor",
    "not" : "bvnot" }
 
-# operations whose operands are the same size
-# but the result is always one bit wide
-# ( is_signed, is_lt, is_eq_comp, is_equ_fun )
-one_bit_ops = {
-    "ltes" : (True, True, True, False),
-    "lteu" : (False, True, True, False),
-    "gtes" : (True, False, True, False),
-    "gteu" : (False, False, True, False),
-    "lts" :  (True, True, False, False),
-    "ltu" :  (False, True, False, False),
-    "gts" :  (True, False, False, False),
-    "gtu" :  (False, False, False, False),
-    "equ" :  (False, False, False, True), 
-    "nequ" : (False, False, True, True) }
 
 ############# utility methods
 def smt_proc_write( val ):
@@ -83,6 +69,21 @@ def assign_smt(statement,out):
 
 ########### end utility methods
 
+# operations whose operands are the same size
+# but the result is always one bit wide
+# ( is_signed, is_lt, is_eq_comp, is_equ_fun )
+one_bit_ops = {
+    "ltes" : (True, True, True, False),
+    "lteu" : (False, True, True, False),
+    "gtes" : (True, False, True, False),
+    "gteu" : (False, False, True, False),
+    "lts" :  (True, True, False, False),
+    "ltu" :  (False, True, False, False),
+    "gts" :  (True, False, False, False),
+    "gtu" :  (False, False, False, False),
+    "equ" :  (False, False, True, True), 
+    "nequ" : (False, False, False, True) }
+
 def comparison(a, b, params):
     ( is_signed, is_lt, is_eq_comp, is_equ_fun ) = params
     ret = "(bvult "
@@ -101,10 +102,10 @@ def comparison(a, b, params):
             ret += arga[0] + " " + argb[0] + ")"
     else:
         if is_eq_comp:
-            ret += argb[0] + " " + arga[0] + ")"
-        else:
             ret += arga[0] + " " + argb[0] + ")"
             ret = "(not "+ret+")"
+        else:
+            ret += argb[0] + " " + arga[0] + ")"
     return ret
 
 def map_ops(op, args):
@@ -317,7 +318,14 @@ def map_dot_to_smt(dot_op, args):
         bit_width = int(args[2])
         introduce_var(args[0], bit_width )
     if dot_op == ".output":
-        args[0] = out_file_name(args[0])
+        if prev_arg_size(args[0]) == 0:
+            args[0] = out_file_bit_align( args[0], 1 )
+        out_file.write( dot_op + " " + (" ".join(args)) + "\n" )
+        return
+    if dot_op == ".remove":
+        if prev_arg_size(args[0]) != 0:
+            out_file.write( dot_op + " " + ( " ".join(args) ) + "\n" )
+        return
     out_file.write( dot_op + " " + ( " ".join(args) ) + "\n" )
     # if dot_op == ".remove":
     #     del vars[args[0]]
@@ -330,7 +338,8 @@ def header():
 
 def make_guess(arg,lessthan):
     smt_proc_write( "(push 1)\n" )
-    smt_proc_write( assert_smt("(not (bvult "+arg+" "+const_bv_literal(2**lessthan,vars[arg])+"))") )
+    const_guess = const_bv_literal(2**lessthan,vars[arg])
+    smt_proc_write( assert_smt("(not (bvult "+arg+" "+const_guess+"))") )
     smt_proc_write("(check-sat)\n")
     line = smt_proc.stdout.readline().strip()
     log_file.write( "-> "+line+"\n" )
@@ -362,7 +371,7 @@ if __name__=="__main__":
         print "Usage: "
         print "translate_smt.py [Input File]"
     out_file = open( os.path.splitext( sys.argv[1] )[0]+".smt", 'w' )
-    log_file = open( "translate_smt.log", 'w' )
+    log_file = open( os.path.splitext( sys.argv[1] )[0]+".log", 'w' )
     smt_proc_write( header() )
     file = open( sys.argv[1], 'r' )
     counter = 0
